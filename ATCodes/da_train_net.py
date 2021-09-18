@@ -672,25 +672,25 @@ if __name__ == "__main__":
             source_list=None
             if args.target_transfer==1:
                 #迁移
-                DC_target=Domain_classifier(fasterRCNN,dataset_t,200)
+                DC_target=Domain_classifier(fasterRCNN,dataset_t)
                 gt_boxes.data.resize_(1, 1, 5).zero_()
                 num_boxes.data.resize_(1).zero_()
                 DC_target.set_args(
                     num_boxes,
                     gt_boxes,
-                    weight_value=args.da_weight
+                    args.da_weight
                 )
 
                 target_list=DC_target.get_calculate_domain_list(True)
 
             if args.source_remove==1:
-                DC_source=Domain_classifier(fasterRCNN,dataset_s,200)
+                DC_source=Domain_classifier(fasterRCNN,dataset_s)
                 gt_boxes.data.resize_(1, 1, 5).zero_()
                 num_boxes.data.resize_(1).zero_()
                 DC_source.set_args(
                     num_boxes,
                     gt_boxes,
-                    weight_value=args.da_weight
+                    args.da_weight
                 )
 
                 source_list=DC_source.get_calculate_domain_list(False)

@@ -542,7 +542,6 @@ class cityscapefoggy(imdb):
         trainval_path=os.path.join(self._source_data_path,"ImageSets","Main","trainval.txt")
 
         l1=[]
-        l2=[]
 
         with open(train_path, "r") as f:
             for line in f.readlines():
@@ -550,6 +549,7 @@ class cityscapefoggy(imdb):
                 l1.append(line)
 
         for item in l:
+            item=item.split('.')[0]
             l1.remove(item)
 
         with open(train_path,"w") as f:

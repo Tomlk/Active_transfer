@@ -1,6 +1,6 @@
 import os
 
-def start_test(ratio,epoch_index,s_t_ratio,dataset_name,GPUID,source_list,target_list):
+def start_test(ratio,epoch_index,s_t_ratio,dataset_name,GPUID,target_list,source_list):
     
     #不能用 os.system 会有并发问题
 

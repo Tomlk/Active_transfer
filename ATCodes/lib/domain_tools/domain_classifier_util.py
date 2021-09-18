@@ -6,14 +6,13 @@ from roi_da_data_layer.roibatchLoader import roibatchLoader
 
 
 class Domain_classifier:
-    def __init__(self, faster_rcnn: _fasterRCNN, dataset: roibatchLoader, extracted_num: int):
+    def __init__(self, faster_rcnn: _fasterRCNN, dataset: roibatchLoader):
         self.my_faster_rcnn = faster_rcnn
         self.dataset = dataset
         self.im_cls_lb = None
         self.num_boxes = None
         self.gt_boxes = None
 
-        self.extracted_num = extracted_num
 
         self.phi = 0.75  # 系数比
         self.dic = {}  # key:图片名 value:不确定值
@@ -63,13 +62,14 @@ class Domain_classifier:
             self.dic[img_path] = self.phi * global_prob + (1 - self.phi) * local_prob
             print(img_id, ":", self.dic[img_path])
             # input()
-
-        sorted_tuple = sorted(self.dic.items(), key=lambda d: d[1], reverse=False)
-        extracted_num = min(len(sorted_tuple), self.extracted_num)
-        extracted_tuple = sorted_tuple[0:extracted_num]
+        '''
+            将目标域中目标域特征明显的图片迁移到源域中；
+            将源于中源域特征明显的图片移除
+        '''
+        sorted_tuple = sorted(self.dic.items(), key=lambda d: d[1], reverse=True)
 
         l=[]
-        for item in extracted_tuple:
+        for item in sorted_tuple:
             l.append(item[0])
             # print(item[0])
             # print(item[0], ":", self.dic[item[0]])
