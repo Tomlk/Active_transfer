@@ -36,7 +36,7 @@ from lib.roi_da_data_layer.roidb import combined_roidb
 from torch.autograd import Variable
 from torch.utils.data.sampler import Sampler
 
-from lib.model.utils.domain_classifier_util import  Domain_classifier
+from lib.domain_tools.domain_classifier_util import Domain_classifier
 
 import lib.active_tools.chooseStrategy as CS
 
@@ -243,6 +243,14 @@ def parse_args():
     )
     parser.add_argument(
         "--st_ratio", dest="st_ratio", help="st_ratio", type=int
+    )
+
+    parser.add_argument(
+        "--target_transfer",dest="target_transfer",help="target_transfer",default=1,type=int
+    )
+
+    parser.add_argument(
+        "--source_remove",dest="source_remove",help="source_remove",default=1,type=int
     )
 
     args = parser.parse_args()
@@ -659,17 +667,41 @@ if __name__ == "__main__":
             data_iter_s = iter(dataloader_s)
             data_iter_t = iter(dataloader_t)
 
-            #迁移
-            DC_target=Domain_classifier(fasterRCNN,dataset_t,200)
-            gt_boxes.data.resize_(1, 1, 5).zero_()
-            num_boxes.data.resize_(1).zero_()
-            DC_target.set_args(
-                num_boxes,
-                gt_boxes,
-                weight_value=args.da_weight
-            )
 
-            DC_target.calculate_domain(True)
+            target_list=None
+            source_list=None
+            if args.target_transfer==1:
+                #迁移
+                DC_target=Domain_classifier(fasterRCNN,dataset_t,200)
+                gt_boxes.data.resize_(1, 1, 5).zero_()
+                num_boxes.data.resize_(1).zero_()
+                DC_target.set_args(
+                    num_boxes,
+                    gt_boxes,
+                    weight_value=args.da_weight
+                )
+
+                target_list=DC_target.get_calculate_domain_list(True)
+
+            if args.source_remove==1:
+                DC_source=Domain_classifier(fasterRCNN,dataset_s,200)
+                gt_boxes.data.resize_(1, 1, 5).zero_()
+                num_boxes.data.resize_(1).zero_()
+                DC_source.set_args(
+                    num_boxes,
+                    gt_boxes,
+                    weight_value=args.da_weight
+                )
+
+                source_list=DC_source.get_calculate_domain_list(False)
+
+            import da_test_net
+            Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), epoch, s_t_ratio,
+                                                  args.dataset, args.gpu_id,target_list,source_list)
+
+
+
+
 
             for step in range(iters_per_epoch):
                 try:
@@ -828,10 +860,9 @@ if __name__ == "__main__":
                 print("save model: {}".format(save_name))
                 # 测试当前模型 并进行数据迁移
 
-                import da_test_net
-
-                Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), epoch, s_t_ratio,
-                                                          args.dataset, args.gpu_id)
+                # import da_test_net
+                # Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), epoch, s_t_ratio,
+                #                                           args.dataset, args.gpu_id)
                 # if args.dataset=="cityscapefoggy":
                 #     import test_cityscapefoggy
                 #     Detection_result=test_cityscapefoggy.start_test(float(1.0/int(args.round_num)),epoch,s_t_ratio)

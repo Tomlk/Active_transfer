@@ -20,6 +20,8 @@ from .config_dataset import cfg_d
 from .imdb import ROOT_DIR, imdb
 from .voc_eval import voc_eval
 
+from shutil import copyfile
+
 # --------------------------------------------------------
 # Fast R-CNN
 # Copyright (c) 2015 Microsoft
@@ -532,6 +534,33 @@ class cityscapefoggy(imdb):
         #更新源域txt 
         import renewImageSetstool.renew_txt as RNtool
         RNtool.gettxt(self._source_data_path,1)
+
+    def remove_datas_from_source(self,l):
+        #去除train.xml中相应的数据即可
+
+        train_path=os.path.join(self._source_data_path,"ImageSets","Main","train.txt")
+        trainval_path=os.path.join(self._source_data_path,"ImageSets","Main","trainval.txt")
+
+        l1=[]
+        l2=[]
+
+        with open(train_path, "r") as f:
+            for line in f.readlines():
+                line = line.strip('\n')  #去掉列表中每一个元素的换行符
+                l1.append(line)
+
+        for item in l:
+            l1.remove(item)
+
+        with open(train_path,"w") as f:
+            s=""
+            for item in l1:
+                s+=item.split('.')[0]
+                s+="\n"
+            f.write(s)
+
+        #复制train_path到trainval_path中
+        copyfile(train_path,trainval_path)
 
 
     

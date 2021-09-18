@@ -1,6 +1,6 @@
 import os
 
-def start_test(ratio,epoch_index,s_t_ratio,dataset_name,GPUID):
+def start_test(ratio,epoch_index,s_t_ratio,dataset_name,GPUID,source_list,target_list):
     
     #不能用 os.system 会有并发问题
 
@@ -37,6 +37,6 @@ def start_test(ratio,epoch_index,s_t_ratio,dataset_name,GPUID):
     print("ratio:",ratio)
     print("model:",currentmodel)
     result=TEST.excute(_GPUID=GPUID,_cuda=True,_gc=True,_lc=True,_part=part,_dataset=dataset,_model_dir=model_dir,_output_dir=output_dir,
-                    _modelepoch=modelepoch,_ratio=ratio,_epochindex=epoch_index,_st_ratio=s_t_ratio)
+                    _modelepoch=modelepoch,_ratio=ratio,_epochindex=epoch_index,_st_ratio=s_t_ratio,_test_flag=False,_target_list=target_list,_source_list=source_list)
 
     return result

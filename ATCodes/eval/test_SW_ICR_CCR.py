@@ -235,7 +235,7 @@ momentum = cfg.TRAIN.MOMENTUM
 weight_decay = cfg.TRAIN.WEIGHT_DECAY
 
 def excute(_GPUID,_cuda,_gc,_lc,_part,_dataset,_model_dir,_output_dir,
-                    _modelepoch,_ratio,_epochindex,_st_ratio,_test_flag):
+                    _modelepoch,_ratio,_epochindex,_st_ratio,_test_flag,_target_list,_source_list):
     print("_ratio:",_ratio)
     # args = parse_args()
     # print(args)
@@ -628,16 +628,37 @@ def excute(_GPUID,_cuda,_gc,_lc,_part,_dataset,_model_dir,_output_dir,
     import active_tools.chooseStrategy as CS
     #M=100
     #getlist=CS.uncertain_sample(detection_for_all_images,len(detection_for_all_images))
-    getlist=CS.random_sample(os.path.join(imdb.get_dataset_path(),"JPEGImages"))
 
-    print("getlist:")
-    for i in range(len(getlist)):
-        getlist[i]=(getlist[i].split("/"))[-1]
-    print(getlist)
 
-    #如果是train数据，转移图像文件及标注文件
-    if args_test_flag==False:
-        imdb.add_datas_from_target(getlist,float(args_ratio),args_epoch_index,args_st_ratio)
+    #getlist=CS.random_sample(os.path.join(imdb.get_dataset_path(),"JPEGImages"))
+
+
+
+
+    #传入list
+
+    if _target_list is not None:
+        print("_target_list:")
+        for i in range(len(_target_list)):
+            _target_list[i]=(_target_list[i].split("/"))[-1]
+        print(_target_list)
+
+        #如果是train数据，转移图像文件及标注文件
+        if args_test_flag==False: #TODO
+            imdb.add_datas_from_target(_target_list,float(args_ratio),args_epoch_index,args_st_ratio)
+
+
+    if _source_list is not None:
+        print("_source_list:")
+        for i in range(len(_source_list)):
+            _source_list[i]=(_source_list[i].split("/"))[-1]
+        print(_source_list)
+
+        #如果是train数据，转移图像文件及标注文件
+        if args_test_flag==False: #TODO
+            imdb.remove_datas_from_source(_source_list)
+
+
 
     end = time.time()
     print("test time: %0.4fs" % (end - start))

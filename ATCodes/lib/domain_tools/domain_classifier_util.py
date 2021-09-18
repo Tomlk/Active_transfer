@@ -1,9 +1,8 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-from lib.model.da_faster_rcnn_instance_da_weight.faster_rcnn import _fasterRCNN
-from lib.roi_da_data_layer.roibatchLoader import roibatchLoader
-from lib.model.utils.transfer_util import transfer_util
+from model.da_faster_rcnn_instance_da_weight.faster_rcnn import _fasterRCNN
+from roi_da_data_layer.roibatchLoader import roibatchLoader
 
 
 class Domain_classifier:
@@ -42,14 +41,14 @@ class Domain_classifier:
 
         return (im_data, im_info, im_cls_lb)
 
-    def calculate_domain(self, target_flag):
+    def get_calculate_domain_list(self, target_flag):
         roidb = self.dataset._roidb
         for item in roidb:
             img_id = item["img_id"]
             img_path = item["image"]
             data_im_info = self.dataset.__getitem__(img_id)
             im_data,im_info,im_cls_lb=self.get_args(data_im_info)
-            out_d_pixel, out_d, _ = self.my_faster_rcnn.forward(  # 目标域获得
+            out_d_pixel, out_d, _ = self.my_faster_rcnn.forward(  #
                 im_data,
                 im_info,
                 im_cls_lb,
@@ -68,17 +67,21 @@ class Domain_classifier:
         sorted_tuple = sorted(self.dic.items(), key=lambda d: d[1], reverse=False)
         extracted_num = min(len(sorted_tuple), self.extracted_num)
         extracted_tuple = sorted_tuple[0:extracted_num]
+
+        l=[]
         for item in extracted_tuple:
-            key = item[0]
-            print(key, ":", self.dic[key])
-        input()
-
-        a_transfer_util = transfer_util(extracted_tuple)
-
-        if target_flag is True:  # target
-            a_transfer_util.transfer_files(sorted_tuple)
-        else:  # source
-            a_transfer_util.remove_files(sorted_tuple)
+            l.append(item[0])
+            # print(item[0])
+            # print(item[0], ":", self.dic[item[0]])
+        # input()
+        return l
+        #
+        # a_transfer_util = transfer_util(extracted_tuple)
+        #
+        # if target_flag is True:  # target
+        #     a_transfer_util.transfer_files(sorted_tuple)
+        # else:  # source
+        #     a_transfer_util.remove_files(sorted_tuple)
 
     def get_global_classifier_prob(self, out_d, target_flag):
         P = F.softmax(out_d)
