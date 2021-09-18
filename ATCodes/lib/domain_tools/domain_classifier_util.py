@@ -47,7 +47,7 @@ class Domain_classifier:
             img_id = item["img_id"]
             img_path = item["image"]
             data_im_info = self.dataset.__getitem__(img_id)
-            im_data,im_info,im_cls_lb=self.get_args(data_im_info)
+            im_data,im_info,im_cls_lb=self.get_args(data_im_info,True)
             out_d_pixel, out_d, _ = self.my_faster_rcnn.forward(  #
                 im_data,
                 im_info,
