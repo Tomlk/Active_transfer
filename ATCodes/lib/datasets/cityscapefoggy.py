@@ -535,20 +535,27 @@ class cityscapefoggy(imdb):
         import renewImageSetstool.renew_txt as RNtool
         RNtool.gettxt(self._source_data_path,1)
 
-    def remove_datas_from_source(self,l):
+    def remove_datas_from_source(self,l,ratio,st_ratio):
         #去除train.xml中相应的数据即可
 
         train_path=os.path.join(self._source_data_path,"ImageSets","Main","train.txt")
         trainval_path=os.path.join(self._source_data_path,"ImageSets","Main","trainval.txt")
 
         l1=[]
+        select_num=int(0.5*st_ratio*ratio*len(self.image_index))
+        length=len(l)
+
+        if length > select_num:
+            length=select_num
+
+        select_l=l[0:length]
 
         with open(train_path, "r") as f:
             for line in f.readlines():
                 line = line.strip('\n')  #去掉列表中每一个元素的换行符
                 l1.append(line)
 
-        for item in l:
+        for item in select_l:
             item=item.split('.')[0]
             l1.remove(item)
 

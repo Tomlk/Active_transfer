@@ -7,6 +7,12 @@ from roi_da_data_layer.roibatchLoader import roibatchLoader
 
 class Domain_classifier:
     def __init__(self, faster_rcnn: _fasterRCNN, dataset: roibatchLoader):
+        '''
+
+        Args:
+            faster_rcnn: 带有域分类器的faster-rcnn网络
+            dataset:输入的数据集类(包括一些信息)
+        '''
         self.my_faster_rcnn = faster_rcnn
         self.dataset = dataset
         self.im_cls_lb = None
@@ -18,11 +24,30 @@ class Domain_classifier:
         self.dic = {}  # key:图片名 value:不确定值
 
     def set_args(self, num_boxes, gt_boxes, da_weight):
+        '''
+        带有域分类器的faster-rcnn网络需要的一些参数
+        Args:
+            num_boxes: boxes数目
+            gt_boxes: boxes分布情况
+            da_weight: 域适应权重
+
+        Returns:
+
+        '''
         self.num_boxes = num_boxes
         self.gt_boxes = gt_boxes
         self.da_weight = da_weight
 
     def get_args(self, data_im_info, cuda_flag: bool):
+        '''
+
+        Args:
+            data_im_info: 单个img的图像信息对象
+            cuda_flag: 是否转换为cuda数据
+
+        Returns:
+            带有域分类器的faster-rcnn网络需要的一些参数
+        '''
         im_data = data_im_info[0]
         im_info = data_im_info[1]
         im_cls_lb = data_im_info[2]
@@ -41,6 +66,14 @@ class Domain_classifier:
         return (im_data, im_info, im_cls_lb)
 
     def get_calculate_domain_list(self, target_flag):
+        '''
+
+        Args:
+            target_flag: 是否是目标域数据
+
+        Returns: 经过排序后的列表
+
+        '''
         roidb = self.dataset._roidb
         for item in roidb:
             img_id = item["img_id"]
@@ -71,19 +104,18 @@ class Domain_classifier:
         l=[]
         for item in sorted_tuple:
             l.append(item[0])
-            # print(item[0])
-            # print(item[0], ":", self.dic[item[0]])
-        # input()
         return l
-        #
-        # a_transfer_util = transfer_util(extracted_tuple)
-        #
-        # if target_flag is True:  # target
-        #     a_transfer_util.transfer_files(sorted_tuple)
-        # else:  # source
-        #     a_transfer_util.remove_files(sorted_tuple)
 
     def get_global_classifier_prob(self, out_d, target_flag):
+        '''
+
+        Args:
+            out_d: 全局域分类占比结果
+            target_flag: 目标域flag
+
+        Returns:
+            通过全局域分类器该域的概率
+        '''
         P = F.softmax(out_d)
         P_numpy = P.cpu().detach().numpy()[0]
         if not target_flag:  # source
@@ -92,6 +124,15 @@ class Domain_classifier:
             return P_numpy[1]
 
     def get_local_classifier_prob(self, out_d_pixel, target_flag):
+        '''
+
+        Args:
+            out_d_pixel: 局部域分类器的概率列表
+            target_flag: 目标域flag
+
+        Returns:
+            通过局部域分类器该域的概率
+        '''
         source_value = 0.5 * torch.mean(out_d_pixel ** 2)
         target_value = 0.5 * torch.mean((1 - out_d_pixel) ** 2)
         out_d_pixels = torch.tensor([[source_value, target_value]])

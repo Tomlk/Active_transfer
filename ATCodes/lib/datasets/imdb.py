@@ -112,7 +112,7 @@ class imdb(object):
     def add_datas_from_target(self,l,ratio=0.1,epoch_index=12,st_ratio=1):
         raise NotImplementedError
 
-    def remove_datas_from_source(self,l):
+    def remove_datas_from_source(self,l,ratio=0.1,st_ratio=1):
         raise NotImplementedError
 
     def get_dataset_path(self):

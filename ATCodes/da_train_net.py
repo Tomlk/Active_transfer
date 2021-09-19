@@ -508,6 +508,7 @@ if __name__ == "__main__":
             sampler=t_sampler_batch,
             num_workers=args.num_workers,
         )
+
         # initilize the tensor holder here.
         im_data = torch.FloatTensor(1)
         im_info = torch.FloatTensor(1)
@@ -559,19 +560,19 @@ if __name__ == "__main__":
             print("network is not defined")
             pdb.set_trace()
 
-        #观察数据集
-        print("dataset_t._roidb:",len(dataset_t._roidb))
-        for item in dataset_t._roidb:
-            print(item["img_id"])
-            print(item["image"])
-            input()
-        print("dataset_t.data_size:",dataset_t.data_size)
-        item0=dataset_t.__getitem__(0)
-        print("data:")
-        print(item0[0])
-        print("im_info:")
-        print(item0[1])
-        input()
+        # #观察数据集
+        # print("dataset_t._roidb:",len(dataset_t._roidb))
+        # for item in dataset_t._roidb:
+        #     print(item["img_id"])
+        #     print(item["image"])
+        #     input()
+        # print("dataset_t.data_size:",dataset_t.data_size)
+        # item0=dataset_t.__getitem__(0)
+        # print("data:")
+        # print(item0[0])
+        # print("im_info:")
+        # print(item0[1])
+        # input()
         # 创建faster-rcnn网络框架
         fasterRCNN.create_architecture()
 
@@ -640,7 +641,9 @@ if __name__ == "__main__":
             print("loaded checkpoint %s" % (load_name))
 
         # iters_per_epoch = int(10000 / args.batch_size)
-        iters_per_epoch = min(int(s_train_size / (args.batch_size)), int(10000 / args.batch_size))
+        # iters_per_epoch = min(int(s_train_size / (args.batch_size)), int(20000 / args.batch_size))
+        # print("iters_per_epoch:",iters_per_epoch)
+
         # iters_per_epoch=100
 
         # EFocalLoss网络
@@ -649,7 +652,83 @@ if __name__ == "__main__":
         else:
             FL = FocalLoss(class_num=2, gamma=args.gamma)
 
-        count_iter = 0
+        # count_iter = 0
+
+
+        target_list=None
+        source_list=None
+        if args.target_transfer==1:
+            #迁移
+            DC_target=Domain_classifier(fasterRCNN,dataset_t)
+            gt_boxes.data.resize_(1, 1, 5).zero_()
+            num_boxes.data.resize_(1).zero_()
+            DC_target.set_args(
+                num_boxes,
+                gt_boxes,
+                args.da_weight
+            )
+
+            target_list=DC_target.get_calculate_domain_list(True)
+
+        if args.source_remove==1:
+            DC_source=Domain_classifier(fasterRCNN,dataset_s)
+            gt_boxes.data.resize_(1, 1, 5).zero_()
+            num_boxes.data.resize_(1).zero_()
+            DC_source.set_args(
+                num_boxes,
+                gt_boxes,
+                args.da_weight
+            )
+
+            source_list=DC_source.get_calculate_domain_list(False)
+
+
+        s_imdb, s_roidb, s_ratio_list, s_ratio_index = combined_roidb(args.s_imdb_name)
+        s_train_size = len(s_roidb)  # add flipped         image_index*2
+
+        t_imdb, t_roidb, t_ratio_list, t_ratio_index = combined_roidb(args.t_imdb_name)
+        t_train_size = len(t_roidb)  # add flipped         image_index*2
+
+
+        s_sampler_batch = sampler(s_train_size, args.batch_size)
+        t_sampler_batch = sampler(t_train_size, args.batch_size)
+
+        # 加载源域数据集
+        dataset_s = roibatchLoader(
+            s_roidb,
+            s_ratio_list,
+            s_ratio_index,
+            args.batch_size,
+            s_imdb.num_classes,
+            training=True,
+        )
+
+        dataloader_s = torch.utils.data.DataLoader(
+            dataset_s,
+            batch_size=args.batch_size,
+            sampler=s_sampler_batch,
+            num_workers=args.num_workers,
+        )
+        # 加载目标域数据集
+        dataset_t = roibatchLoader(
+            t_roidb,
+            t_ratio_list,
+            t_ratio_index,
+            args.batch_size,
+            t_imdb.num_classes,
+            training=True,
+        )
+        dataloader_t = torch.utils.data.DataLoader(
+            dataset_t,
+            batch_size=args.batch_size,
+            sampler=t_sampler_batch,
+            num_workers=args.num_workers,
+        )
+
+
+        iters_per_epoch = min(int(s_train_size / (args.batch_size)), int(20000 / args.batch_size))
+        print("iters_per_epoch:",iters_per_epoch)
+
 
         if args.resume == True:
             args.max_epochs = args.start_epoch + 1
@@ -667,42 +746,6 @@ if __name__ == "__main__":
             data_iter_s = iter(dataloader_s)
             data_iter_t = iter(dataloader_t)
 
-
-            target_list=None
-            source_list=None
-            if args.target_transfer==1:
-                #迁移
-                DC_target=Domain_classifier(fasterRCNN,dataset_t)
-                gt_boxes.data.resize_(1, 1, 5).zero_()
-                num_boxes.data.resize_(1).zero_()
-                DC_target.set_args(
-                    num_boxes,
-                    gt_boxes,
-                    args.da_weight
-                )
-
-                target_list=DC_target.get_calculate_domain_list(True)
-
-            if args.source_remove==1:
-                DC_source=Domain_classifier(fasterRCNN,dataset_s)
-                gt_boxes.data.resize_(1, 1, 5).zero_()
-                num_boxes.data.resize_(1).zero_()
-                DC_source.set_args(
-                    num_boxes,
-                    gt_boxes,
-                    args.da_weight
-                )
-
-                source_list=DC_source.get_calculate_domain_list(False)
-
-            import da_test_net
-            Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), epoch, s_t_ratio,
-                                                  args.dataset, args.gpu_id,target_list,source_list)
-
-
-
-
-
             for step in range(iters_per_epoch):
                 try:
                     data_s = next(data_iter_s)  # 还有剩余的源域数据
@@ -715,7 +758,7 @@ if __name__ == "__main__":
                     data_iter_t = iter(dataloader_t) # 从头开始获得迭代器
                     data_t = next(data_iter_t)  # 获得一批数据
                 # eta = 1.0
-                count_iter += 1
+                # count_iter += 1
                 # put source data into variable
 
                 im_data.data.resize_(data_s[0].size()).copy_(data_s[0])
@@ -858,6 +901,12 @@ if __name__ == "__main__":
                     save_name,
                 )
                 print("save model: {}".format(save_name))
+
+
+                import da_test_net
+                Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), epoch, s_t_ratio,
+                                                          args.dataset, args.gpu_id,target_list,source_list)
+
                 # 测试当前模型 并进行数据迁移
 
                 # import da_test_net

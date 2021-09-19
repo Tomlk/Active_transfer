@@ -648,6 +648,7 @@ def excute(_GPUID,_cuda,_gc,_lc,_part,_dataset,_model_dir,_output_dir,
             imdb.add_datas_from_target(_target_list,float(args_ratio),args_epoch_index,args_st_ratio)
 
 
+
     if _source_list is not None:
         print("_source_list:")
         for i in range(len(_source_list)):
@@ -656,7 +657,7 @@ def excute(_GPUID,_cuda,_gc,_lc,_part,_dataset,_model_dir,_output_dir,
 
         #如果是train数据，转移图像文件及标注文件
         if args_test_flag==False: #TODO
-            imdb.remove_datas_from_source(_source_list)
+            imdb.remove_datas_from_source(_source_list,float(args_ratio),args_st_ratio)
 
 
 
