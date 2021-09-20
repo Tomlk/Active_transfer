@@ -682,6 +682,10 @@ if __name__ == "__main__":
 
             source_list=DC_source.get_calculate_domain_list(False)
 
+        import da_test_net
+        Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), args.start_epoch, s_t_ratio,
+                                                  args.dataset, args.gpu_id,target_list,source_list)
+
 
         s_imdb, s_roidb, s_ratio_list, s_ratio_index = combined_roidb(args.s_imdb_name)
         s_train_size = len(s_roidb)  # add flipped         image_index*2
@@ -903,9 +907,6 @@ if __name__ == "__main__":
                 print("save model: {}".format(save_name))
 
 
-                import da_test_net
-                Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), epoch, s_t_ratio,
-                                                          args.dataset, args.gpu_id,target_list,source_list)
 
                 # 测试当前模型 并进行数据迁移
 
