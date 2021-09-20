@@ -21,6 +21,7 @@ from .imdb import ROOT_DIR, imdb
 from .voc_eval import voc_eval
 
 from shutil import copyfile
+import datetime
 
 # --------------------------------------------------------
 # Fast R-CNN
@@ -527,9 +528,10 @@ class cityscapefoggy(imdb):
                 
         print("transfer finished!,transfered {} target data".format(num*st_ratio))
 
+        now_time= datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') #获取时间
         #写入记录
         with open(os.path.join(self._devkit_path,"transfer_data_record.txt"),'a') as f:
-            f.write("epoch {} finished ,then  transfered {} imgs and xmls \n".format(epoch_index,num*st_ratio))
+            f.write("time: {}, epoch {} finished ,then  transfered {} imgs and xmls \n".format(now_time,epoch_index,select_num))
 
         #更新源域txt 
         import renewImageSetstool.renew_txt as RNtool
@@ -542,7 +544,7 @@ class cityscapefoggy(imdb):
         trainval_path=os.path.join(self._source_data_path,"ImageSets","Main","trainval.txt")
 
         l1=[]
-        select_num=int(0.5*st_ratio*ratio*len(self.image_index))
+        select_num=int(0.1*st_ratio*ratio*len(self.image_index))
         length=len(l)
 
         if length > select_num:
@@ -566,8 +568,13 @@ class cityscapefoggy(imdb):
                 s+="\n"
             f.write(s)
 
+        now_time= datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') #获取时间
+        #写入记录
+        with open(os.path.join(self._devkit_path,"transfer_data_record.txt"),'a') as f:
+            f.write("time: {},remove {} imgs from source train.\n".format(now_time,length))
         #复制train_path到trainval_path中
         copyfile(train_path,trainval_path)
+
 
 
     
