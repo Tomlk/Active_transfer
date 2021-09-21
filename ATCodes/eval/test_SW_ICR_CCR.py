@@ -33,38 +33,38 @@ try:
 except NameError:
     xrange = range  # Python 3
 
-args_dataset="cityscape"
-args_num_epoch=-1
-args_output_dir="./"
-args_cfg="cfgs/vgg16.yml"
-args_net="vgg16"
-args_model_dir="models.pth"
-args_part="test_t"
-args_cuda=True
-args_large_scale=False
-args_class_agnostic=False
-args_ls=True
-args_mGPUs=False
-args_parallel_type=0
-args_checksession=1
-args_checkepoch=1
-args_checkpoint=10021
-args_model_name=""
-args_USE_cls_cotrain=True
-args_USE_box_cotrain=True
-args_lc=True
-args_gc=True
-args_ratio=0.05
-args_epoch_index=12
-args_st_ratio=1
-args_test_flag=False
+args_dataset = "cityscape"
+args_num_epoch = -1
+args_output_dir = "./"
+args_cfg = "cfgs/vgg16.yml"
+args_net = "vgg16"
+args_model_dir = "models.pth"
+args_part = "test_t"
+args_cuda = True
+args_large_scale = False
+args_class_agnostic = False
+args_ls = True
+args_mGPUs = False
+args_parallel_type = 0
+args_checksession = 1
+args_checkepoch = 1
+args_checkpoint = 10021
+args_model_name = ""
+args_USE_cls_cotrain = True
+args_USE_box_cotrain = True
+args_lc = True
+args_gc = True
+args_ratio = 0.05
+args_epoch_index = 12
+args_st_ratio = 1
+args_test_flag = False
 
 args_s_imdb_name = ""
-args_s_imdbtest_name =""
+args_s_imdbtest_name = ""
 args_t_imdb_name = ""
 args_t_imdbtest_name = ""
-args_set_cfgs=[]
-args_vis=False
+args_set_cfgs = []
+args_vis = False
 # def parse_args():
 #     """
 #     Parse input arguments
@@ -217,7 +217,7 @@ args_vis=False
 #         help="epoch_index",
 #         type=int,
 #     )
-    
+
 #     parser.add_argument(
 #         "--st_ratio",
 #         dest="--st_ratio",
@@ -234,9 +234,10 @@ lr = cfg.TRAIN.LEARNING_RATE
 momentum = cfg.TRAIN.MOMENTUM
 weight_decay = cfg.TRAIN.WEIGHT_DECAY
 
-def excute(_GPUID,_cuda,_gc,_lc,_part,_dataset,_model_dir,_output_dir,
-                    _modelepoch,_ratio,_epochindex,_st_ratio,_test_flag,_target_list,_source_list):
-    print("_ratio:",_ratio)
+
+def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
+           _modelepoch, _ratio, _epochindex, _st_ratio, _test_flag, _target_list, _source_list, _lc_flag=0):
+    print("_ratio:", _ratio)
     # args = parse_args()
     # print(args)
 
@@ -248,22 +249,21 @@ def excute(_GPUID,_cuda,_gc,_lc,_part,_dataset,_model_dir,_output_dir,
 
     np.random.seed(cfg.RNG_SEED)
 
-    os.environ["CUDA_VISIBLE_DEVICES"]=str(_GPUID)
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(_GPUID)
 
-
-    args_dataset=_dataset
-    args_cuda=_cuda
-    args_gc=_gc
-    args_lc=_lc
-    args_part=_part
-    args_model_dir=_model_dir
-    args_output_dir=_output_dir
-    args_num_epoch=_modelepoch
-    print("ratio:",_ratio)
-    args_ratio=_ratio
-    args_epoch_index=_epochindex
-    args_st_ratio=_st_ratio
-    args_test_flag=_test_flag
+    args_dataset = _dataset
+    args_cuda = _cuda
+    args_gc = _gc
+    args_lc = _lc
+    args_part = _part
+    args_model_dir = _model_dir
+    args_output_dir = _output_dir
+    args_num_epoch = _modelepoch
+    print("ratio:", _ratio)
+    args_ratio = _ratio
+    args_epoch_index = _epochindex
+    args_st_ratio = _st_ratio
+    args_test_flag = _test_flag
 
     if args_dataset == "cityscapefoggy":
         print("loading our dataset...........")
@@ -293,7 +293,7 @@ def excute(_GPUID,_cuda,_gc,_lc,_part,_dataset,_model_dir,_output_dir,
             "MAX_NUM_GT_BOXES",
             "30",
         ]
-    elif args_dataset=="bddnight10":
+    elif args_dataset == "bddnight10":
         print("loading our dataset.........")
         args_s_imdb_name = "bdddaytime10_trainval"
         args_s_imdbtest_name = "bdddaytime10_test"
@@ -526,16 +526,16 @@ def excute(_GPUID,_cuda,_gc,_lc,_part,_dataset,_model_dir,_output_dir,
                 # Optionally normalize targets by a precomputed mean and stdev
                 if args_class_agnostic:
                     box_deltas = (
-                        box_deltas.view(-1, 4)
-                        * torch.FloatTensor(cfg.TRAIN.BBOX_NORMALIZE_STDS).cuda()
-                        + torch.FloatTensor(cfg.TRAIN.BBOX_NORMALIZE_MEANS).cuda()
+                            box_deltas.view(-1, 4)
+                            * torch.FloatTensor(cfg.TRAIN.BBOX_NORMALIZE_STDS).cuda()
+                            + torch.FloatTensor(cfg.TRAIN.BBOX_NORMALIZE_MEANS).cuda()
                     )
                     box_deltas = box_deltas.view(1, -1, 4)
                 else:
                     box_deltas = (
-                        box_deltas.view(-1, 4)
-                        * torch.FloatTensor(cfg.TRAIN.BBOX_NORMALIZE_STDS).cuda()
-                        + torch.FloatTensor(cfg.TRAIN.BBOX_NORMALIZE_MEANS).cuda()
+                            box_deltas.view(-1, 4)
+                            * torch.FloatTensor(cfg.TRAIN.BBOX_NORMALIZE_STDS).cuda()
+                            + torch.FloatTensor(cfg.TRAIN.BBOX_NORMALIZE_MEANS).cuda()
                     )
                     box_deltas = box_deltas.view(1, -1, 4 * len(imdb.classes))
 
@@ -564,7 +564,7 @@ def excute(_GPUID,_cuda,_gc,_lc,_part,_dataset,_model_dir,_output_dir,
                 if args_class_agnostic:
                     cls_boxes = pred_boxes[inds, :]
                 else:
-                    cls_boxes = pred_boxes[inds][:, j * 4 : (j + 1) * 4]
+                    cls_boxes = pred_boxes[inds][:, j * 4: (j + 1) * 4]
 
                 cls_dets = torch.cat((cls_boxes, cls_scores.unsqueeze(1)), 1)
                 # cls_dets = torch.cat((cls_boxes, cls_scores), 1)
@@ -620,55 +620,72 @@ def excute(_GPUID,_cuda,_gc,_lc,_part,_dataset,_model_dir,_output_dir,
     #     ff.write(str(args_num_epoch))
     #     ff.write("\n")
 
-    detection_for_all_images=imdb.evaluate_detections(all_boxes, args_output_dir,args_epoch_index)
+    detection_for_all_images = imdb.evaluate_detections(all_boxes, args_output_dir, args_epoch_index)
 
     print("detection_for_all_images:")
     print(detection_for_all_images)
 
-    import active_tools.chooseStrategy as CS
-    #M=100
-    #getlist=CS.uncertain_sample(detection_for_all_images,len(detection_for_all_images))
+    # getlist=CS.random_sample(os.path.join(imdb.get_dataset_path(),"JPEGImages"))
 
-
-    #getlist=CS.random_sample(os.path.join(imdb.get_dataset_path(),"JPEGImages"))
-
-
-
-
-    #传入list
+    # 传入list
 
     if _target_list is not None:
         print("_target_list:")
         for i in range(len(_target_list)):
-            _target_list[i]=(_target_list[i].split("/"))[-1]
-        print(_target_list)
+            _target_list[i] = (_target_list[i].split("/"))[-1]
+        # print(_target_list)
 
-        #如果是train数据，转移图像文件及标注文件
-        if args_test_flag==False: #TODO
-            imdb.add_datas_from_target(_target_list,float(args_ratio),args_epoch_index,args_st_ratio)
+        if _lc_flag==1:
+            import lib.active_tools.chooseStrategy as CS
+            uncertain_list = CS.uncertain_sample(detection_for_all_images, len(detection_for_all_images))
+            for i in range(len(uncertain_list)):
+                uncertain_list[i] = (uncertain_list[i].split("/"))[-1]
 
+            # 与target_list 权重1：1处理排序。
+            i = 0
+            sorted_dic = {}
+            for i in range(0,min(len(_target_list),len(uncertain_list))):
+                item_1 = _target_list[i]
+                item_2 = uncertain_list[i]
+                if not sorted_dic.__contains__(item_1):
+                    sorted_dic[item_1] = 0
+                if not sorted_dic.__contains__(item_2):
+                    sorted_dic[item_2] = 0
+
+                sorted_dic[item_1] += i
+                sorted_dic[item_2] += i
+
+            sorted_target_list_tuple = sorted(sorted_dic.items(), key=lambda d: d[1], reverse=False)
+
+            sorted_target_list = []
+            for item in sorted_target_list_tuple:
+                sorted_target_list.append(item[0])
+
+            _target_list=sorted_target_list
+
+        # 如果是train数据，转移图像文件及标注文件
+        if args_test_flag == False:  # TODO
+            imdb.add_datas_from_target(_target_list, float(args_ratio), args_epoch_index, args_st_ratio)
 
 
     if _source_list is not None:
         print("_source_list:")
         for i in range(len(_source_list)):
-            _source_list[i]=(_source_list[i].split("/"))[-1]
+            _source_list[i] = (_source_list[i].split("/"))[-1]
         print(_source_list)
 
-        #如果是train数据，转移图像文件及标注文件
-        if args_test_flag==False: #TODO
-            imdb.remove_datas_from_source(_source_list,float(args_ratio),args_st_ratio)
-
-
+        # 如果是train数据，转移图像文件及标注文件
+        if args_test_flag == False:  # TODO
+            imdb.remove_datas_from_source(_source_list, float(args_ratio), args_st_ratio)
 
     end = time.time()
     print("test time: %0.4fs" % (end - start))
     return True
 
+
 if __name__ == "__main__":
     # excute()
     pass
 
-    
     # l=write2list(all_boxes)
     # return l

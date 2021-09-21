@@ -20,6 +20,10 @@ from .config_dataset import cfg_d
 from .imdb import ROOT_DIR, imdb
 from .voc_eval import voc_eval
 
+
+from shutil import copyfile
+import datetime
+
 # --------------------------------------------------------
 # Fast R-CNN
 # Copyright (c) 2015 Microsoft
@@ -566,6 +570,46 @@ class clipart(imdb):
         import renewImageSetstool.renew_txt as RNtool
         RNtool.gettxt(self._source_data_path,1)
 
+    def remove_datas_from_source(self,l,ratio,st_ratio):
+        #去除train.xml中相应的数据即可
+
+        train_path=os.path.join(self._source_data_path,"ImageSets","Main","train.txt")
+        trainval_path=os.path.join(self._source_data_path,"ImageSets","Main","trainval.txt")
+
+        l1=[]
+        select_num=int(0.1*st_ratio*ratio*len(self.image_index))
+        length=len(l)
+
+        if length > select_num:
+            length=select_num
+
+        select_l=l[0:length]
+
+        with open(train_path, "r") as f:
+            for line in f.readlines():
+                line = line.strip('\n')  #去掉列表中每一个元素的换行符
+                l1.append(line)
+
+        for item in select_l:
+            item=item.split('.')[0]
+            l1.remove(item)
+
+        with open(train_path,"w") as f:
+            s=""
+            for item in l1:
+                s+=item.split('.')[0]
+                s+="\n"
+            f.write(s)
+
+        now_time= datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') #获取时间
+        #写入记录
+        with open(os.path.join(self._devkit_path,"transfer_data_record.txt"),'a') as f:
+            f.write("time: {},remove {} imgs from source train.\n".format(now_time,length))
+        #复制train_path到trainval_path中
+        copyfile(train_path,trainval_path)
+
+
+
 
     def competition_mode(self, on):
         if on:
@@ -576,9 +620,9 @@ class clipart(imdb):
             self.config["cleanup"] = True
 
 
-if __name__ == "__main__":
-    d = pascal_voc("trainval", "2007")
-    res = d.roidb
-    from IPython import embed
-
-    embed()
+# if __name__ == "__main__":
+#     d = pascal_voc("trainval", "2007")
+#     res = d.roidb
+#     from IPython import embed
+#
+#     embed()

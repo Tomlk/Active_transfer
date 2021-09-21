@@ -253,6 +253,10 @@ def parse_args():
         "--source_remove",dest="source_remove",help="source_remove",default=1,type=int
     )
 
+    parser.add_argument(
+        "--lc_flag",dest="lc_flag",help="lc_flag",default=0,type=int
+    )
+
     args = parser.parse_args()
     return args
 
@@ -684,7 +688,7 @@ if __name__ == "__main__":
 
         import da_test_net
         Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), args.start_epoch, s_t_ratio,
-                                                  args.dataset, args.gpu_id,target_list,source_list)
+                                                  args.dataset, args.gpu_id,target_list,source_list,args.lc_flag)
 
 
         s_imdb, s_roidb, s_ratio_list, s_ratio_index = combined_roidb(args.s_imdb_name)
@@ -730,14 +734,14 @@ if __name__ == "__main__":
         )
 
 
-        iters_per_epoch = min(int(s_train_size / (args.batch_size)), int(20000 / args.batch_size))
+        iters_per_epoch = int(s_train_size / (args.batch_size))
         print("iters_per_epoch:",iters_per_epoch)
 
 
         if args.resume == True:
             args.max_epochs = args.start_epoch + 1
 
-        for epoch in range(args.start_epoch, args.max_epochs + 1):
+        for epoch in range(args.start_epoch, args.max_epochs):
 
             # setting to train mode
             fasterRCNN.train()
