@@ -629,6 +629,16 @@ def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
 
     # 传入list
 
+    if _source_list is not None:
+        print("_source_list:")
+        for i in range(len(_source_list)):
+            _source_list[i] = (_source_list[i].split("/"))[-1]
+        print(_source_list)
+
+        # 如果是train数据，转移图像文件及标注文件
+        if args_test_flag == False:  # TODO
+            imdb.remove_datas_from_source(_source_list, float(args_ratio), args_st_ratio)
+
     if _target_list is not None:
         print("_target_list:")
         for i in range(len(_target_list)):
@@ -667,16 +677,6 @@ def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
         if args_test_flag == False:  # TODO
             imdb.add_datas_from_target(_target_list, float(args_ratio), args_epoch_index, args_st_ratio)
 
-
-    if _source_list is not None:
-        print("_source_list:")
-        for i in range(len(_source_list)):
-            _source_list[i] = (_source_list[i].split("/"))[-1]
-        print(_source_list)
-
-        # 如果是train数据，转移图像文件及标注文件
-        if args_test_flag == False:  # TODO
-            imdb.remove_datas_from_source(_source_list, float(args_ratio), args_st_ratio)
 
     end = time.time()
     print("test time: %0.4fs" % (end - start))
