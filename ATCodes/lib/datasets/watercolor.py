@@ -20,7 +20,8 @@ from .config_dataset import cfg_d
 from .imdb import ROOT_DIR, imdb
 from .voc_eval import voc_eval
 
-from shutil import copyfile
+#更新源域txt
+import renewImageSetstool.renew_txt as RNtool
 import datetime
 
 # --------------------------------------------------------
@@ -573,19 +574,17 @@ class watercolor(imdb):
             f.write("time: {}, epoch {} finished ,then  transfered {} imgs and xmls \n".format(now_time,epoch_index,select_num))
 
 
-        #更新源域txt 
-        import lib.renewImageSetstool.renew_txt as RNtool
         RNtool.gettxt(self._source_data_path,1)
 
 
     def remove_datas_from_source(self,l,ratio,st_ratio):
-        #去除train.xml中相应的数据即可
+        #删掉相应图片
 
-        train_path=os.path.join(self._source_data_path,"ImageSets","Main","train.txt")
-        trainval_path=os.path.join(self._source_data_path,"ImageSets","Main","trainval.txt")
+        img_dir_path=os.path.join(self._source_data_path,"JPEGImages")
+        xml_dir_path=os.path.join(self._source_data_path,"Annotations")
 
         l1=[]
-        select_num=int(0.1*st_ratio*ratio*len(self.image_index))
+        select_num=int(0.2*st_ratio*ratio*len(self.image_index))
         length=len(l)
 
         if length > select_num:
@@ -593,28 +592,20 @@ class watercolor(imdb):
 
         select_l=l[0:length]
 
-        with open(train_path, "r") as f:
-            for line in f.readlines():
-                line = line.strip('\n')  #去掉列表中每一个元素的换行符
-                l1.append(line)
-
         for item in select_l:
-            item=item.split('.')[0]
-            l1.remove(item)
-
-        with open(train_path,"w") as f:
-            s=""
-            for item in l1:
-                s+=item.split('.')[0]
-                s+="\n"
-            f.write(s)
+            img_file=os.path.join(img_dir_path,item)
+            xml_file=os.path.join(xml_dir_path,item.split('.')[0]+".xml")
+            if os.path.exists(img_file):
+                os.remove(img_file)
+            if os.path.exists(xml_file):
+                os.remove(xml_file)
 
         now_time= datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') #获取时间
         #写入记录
         with open(os.path.join(self._devkit_path,"transfer_data_record.txt"),'a') as f:
             f.write("time: {},remove {} imgs from source train.\n".format(now_time,length))
-        #复制train_path到trainval_path中
-        copyfile(train_path,trainval_path)
+        #更新源域txt
+        RNtool.gettxt(self._source_data_path,1)
 
 
     def competition_mode(self, on):
