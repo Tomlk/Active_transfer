@@ -520,9 +520,11 @@ class watercolor(imdb):
         print("Running:\n{}".format(cmd))
         status = subprocess.call(cmd, shell=True)
 
-    def evaluate_detections(self, all_boxes, output_dir,epoch_index):
-        self._write_voc_results_file(all_boxes)
+    def evaluate_detections(self, all_boxes, output_dir,epoch_index,t_train_flag):
         self._write_to_listfile(all_boxes)
+        if t_train_flag:
+            return self.detection_result
+        self._write_voc_results_file(all_boxes)
         self._do_python_eval(output_dir,epoch_index)
         if self.config["matlab_eval"]:
             self._do_matlab_eval(output_dir)

@@ -98,7 +98,7 @@ class imdb(object):
     def default_roidb(self):
         raise NotImplementedError
 
-    def evaluate_detections(self, all_boxes, output_dir=None,epoch_index=12):
+    def evaluate_detections(self, all_boxes, output_dir=None,epoch_index=12,t_train_flag=True):
         """
     all_boxes is a list of length number-of-classes.
     Each list element is a list of length number-of-images.
