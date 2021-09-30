@@ -98,7 +98,7 @@ class imdb(object):
     def default_roidb(self):
         raise NotImplementedError
 
-    def evaluate_detections(self, all_boxes, output_dir=None,epoch_index=12,t_train_flag=True):
+    def evaluate_detections(self, all_boxes, output_dir=None, epoch_index=12, t_train_flag=True):
         """
     all_boxes is a list of length number-of-classes.
     Each list element is a list of length number-of-images.
@@ -109,10 +109,13 @@ class imdb(object):
     """
         raise NotImplementedError
 
-    def add_datas_from_target(self,l,ratio=0.1,epoch_index=12,st_ratio=1):
+    def add_datas_from_target(self, l, ratio=0.1, epoch_index=12, st_ratio=1):
         raise NotImplementedError
 
-    def remove_datas_from_source(self,l,ratio=0.1,st_ratio=1):
+    def remove_datas_from_source(self, l, ratio=0.1, st_ratio=1):
+        raise NotImplementedError
+
+    def get_mAP(self, all_boxes, round, epoch_index):
         raise NotImplementedError
 
     def get_dataset_path(self):
@@ -240,7 +243,7 @@ class imdb(object):
 
     def create_roidb_from_box_list(self, box_list, gt_roidb):
         assert (
-            len(box_list) == self.num_images
+                len(box_list) == self.num_images
         ), "Number of boxes must match number of ground-truth images"
         roidb = []
         for i in range(self.num_images):

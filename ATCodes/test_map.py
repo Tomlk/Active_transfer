@@ -1,19 +1,19 @@
-from __future__ import absolute_import, division, print_function
 
+
+
+# import _init_paths
 import argparse
 import os
 import pdb
-import pickle
 import pprint
 import sys
 import time
 
-import _init_paths
-import cv2
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torchvision.transforms as transforms
 
 # from model.faster_rcnn.vgg16 import vgg16
 from lib.model.da_faster_rcnn.resnet import resnet
@@ -33,43 +33,21 @@ try:
 except NameError:
     xrange = range  # Python 3
 
-args_dataset = "cityscape"
-args_num_epoch = -1
-args_output_dir = "./"
-args_cfg = "cfgs/vgg16.yml"
-args_net = "vgg16"
-args_model_dir = "models.pth"
-args_part = "test_t"
-args_cuda = True
-args_large_scale = False
-args_class_agnostic = False
-args_ls = True
-args_mGPUs = False
-args_parallel_type = 0
-args_checksession = 1
-args_checkepoch = 1
-args_checkpoint = 10021
-args_model_name = ""
-args_USE_cls_cotrain = True
-args_USE_box_cotrain = True
+
+s_imdb_name = ""
+s_imdbtest_name = ""
+t_imdb_name = ""
+t_imdbtest_name = ""
+
+args_cuda=True
+args_net="vgg16"
 args_lc = True
 args_gc = True
-args_ratio = 0.05
-args_epoch_index = 12
-args_st_ratio = 1
-args_test_flag = False
-
-args_s_imdb_name = ""
-args_s_imdbtest_name = ""
-args_t_imdb_name = ""
-args_t_imdbtest_name = ""
-args_set_cfgs = []
+args_class_agnostic=False
+args_large_scale = False
 args_vis = False
-
-lr = cfg.TRAIN.LEARNING_RATE
-momentum = cfg.TRAIN.MOMENTUM
-weight_decay = cfg.TRAIN.WEIGHT_DECAY
-
+args_part = "test_t"
+args_model_dir=""
 
 def get_test_boxes(imdb, roidb, ratio_list, ratio_index,faster_rcnn):
     max_per_image=100
@@ -246,34 +224,54 @@ def get_test_boxes(imdb, roidb, ratio_list, ratio_index,faster_rcnn):
 
     return all_boxes
 
-def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
-           _modelepoch, _ratio, _epochindex, _st_ratio, _test_flag, _target_list, _source_list, _lc_flag=0):
-    print("_ratio:", _ratio)
 
-    if torch.cuda.is_available() and not _cuda:
-        print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
-    np.random.seed(cfg.RNG_SEED)
+def parse_args():
+    """
+  Parse input arguments
+  """
+    parser = argparse.ArgumentParser(description="Train a Fast R-CNN network")
+    parser.add_argument(
+        "--dataset",
+        dest="dataset",
+        help="training dataset",
+        default="cityscape",
+        type=str,
+    )
+    parser.add_argument(
+        "--s_flag", dest="s_flag", help="s_flag", default=0, type=int
+    )
+    parser.add_argument(
+        "--train_flag",
+        dest="train_flag",
+        help="train_flag",
+        default=0,
+        type=int,
+    )
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(_GPUID)
+    parser.add_argument(
+        "--gpu_id", dest="gpu_id", help="gpu_id", default=0, type=int
+    )
 
-    args_dataset = _dataset
-    args_cuda = _cuda
-    args_gc = _gc
-    args_lc = _lc
-    args_part = _part
-    args_model_dir = _model_dir
-    args_output_dir = _output_dir
-    args_num_epoch = _modelepoch
-    print("ratio:", _ratio)
-    args_ratio = _ratio
-    args_epoch_index = _epochindex
-    args_st_ratio = _st_ratio
-    args_test_flag = _test_flag
+    parser.add_argument(
+        "--model_path", dest="model_path", help="model_path", default="", type=str
+    )
+    args = parser.parse_args()
+    return args
 
-    if args_dataset == "cityscapefoggy":
+
+def get_map(dataset,s_flag,train_flag,model_path=""):
+    from da_test_net import get_last_model_path
+    args_model_dir=model_path
+    if model_path=="":
+        args_model_dir = get_last_model_path(dataset)
+
+    if dataset == "cityscapefoggy":
         print("loading our dataset...........")
-        args_t_imdbtest_name = "cityscapefoggy_test"
+        s_imdb_name = "cityscape_trainval"
+        s_imdbtest_name = "cityscape_test"
+        t_imdb_name = "cityscapefoggy_trainval"
+        t_imdbtest_name = "cityscapefoggy_test"
         args_set_cfgs = [
             "ANCHOR_SCALES",
             "[8,16,32]",
@@ -283,9 +281,11 @@ def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
             "30",
         ]
 
-    elif args_dataset == "clipart":
+    elif dataset == "clipart":
         print("loading our dataset...........")
-        args_t_imdbtest_name = "clipart_test"
+        s_imdb_name = "voc_2007_trainval+voc_2012_trainval"
+        t_imdb_name = "clipart_trainval"
+        t_imdbtest_name = "clipart_trainval"
         args_set_cfgs = [
             "ANCHOR_SCALES",
             "[8,16,32]",
@@ -295,9 +295,11 @@ def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
             "20",
         ]
 
-    elif args_dataset == "watercolor":
+    elif dataset == "watercolor":
         print("loading our dataset...........")
-        args_t_imdbtest_name = "watercolor_test"
+        s_imdb_name = "voc_water_2007_trainval+voc_water_2012_trainval"
+        t_imdb_name = "watercolor_train"
+        t_imdbtest_name = "watercolor_test"
         args_set_cfgs = [
             "ANCHOR_SCALES",
             "[8,16,32]",
@@ -306,6 +308,7 @@ def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
             "MAX_NUM_GT_BOXES",
             "20",
         ]
+
 
     args_cfg_file = (
         "cfgs/{}_ls.yml".format(args_net)
@@ -322,11 +325,18 @@ def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
     pprint.pprint(cfg)
 
     cfg.TRAIN.USE_FLIPPED = False
+    imdb_name=""
+    if s_flag==1:
+        imdb_name=s_imdb_name
+    elif train_flag==1:
+        imdb_name=t_imdb_name
+    else:
+        imdb_name=t_imdbtest_name
 
-
-    #目标域训练集:test
+    print(imdb_name)
+    #
     imdb, roidb, ratio_list, ratio_index = combined_roidb(
-        args_t_imdbtest_name, False
+        imdb_name, False
     )
 
     imdb.competition_mode(on=True)
@@ -380,28 +390,22 @@ def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
 
     print("load model successfully!")
 
-    start = time.time()
     all_boxes=get_test_boxes(imdb, roidb, ratio_list, ratio_index,fasterRCNN)
 
-    #对目标域 test 检测存储结果
-    imdb.evaluate_detections(all_boxes, args_output_dir, args_epoch_index,False)
-    end = time.time()
-    print("测试集 检测时间 time: %0.4fs" % (end - start))
+    mAP=imdb.get_mAP(all_boxes,round,100)
 
-    # with open(det_file, "wb") as f:
-    with open("predict_all_boxes.pkl", "wb") as f:
-        pickle.dump(all_boxes, f, pickle.HIGHEST_PROTOCOL)
-
-    print("Evaluating detections")
-
-    if not os.path.exists(args_output_dir):
-        os.makedirs(args_output_dir)
-    return True
+    return mAP
 
 
-if __name__ == "__main__":
-    # excute()
-    pass
+if __name__=="__main__":
 
-    # l=write2list(all_boxes)
-    # return l
+    args = parse_args()
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu_id)  # 设置使用哪块gpu
+    map=get_map(args.dataset,args.s_flag,args.train_flag,args.model_path)
+    print("************")
+    print("mAP:{}",format(map))
+    print("************")
+
+
+
+

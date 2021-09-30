@@ -1,3 +1,4 @@
+
 from __future__ import absolute_import, division, print_function
 
 import argparse
@@ -32,6 +33,8 @@ try:
     xrange  # Python 2
 except NameError:
     xrange = range  # Python 3
+
+
 
 args_dataset = "cityscape"
 args_num_epoch = -1
@@ -244,68 +247,29 @@ def get_test_boxes(imdb, roidb, ratio_list, ratio_index,faster_rcnn):
         )
         sys.stdout.flush()
 
+        # if vis:
+        #     cv2.imwrite("result.png", im2show)
+        #     pdb.set_trace()
+        #     # cv2.imshow('test', im2show)
+        #     # cv2.waitKey(0)
+
     return all_boxes
 
-def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
-           _modelepoch, _ratio, _epochindex, _st_ratio, _test_flag, _target_list, _source_list, _lc_flag=0):
-    print("_ratio:", _ratio)
 
-    if torch.cuda.is_available() and not _cuda:
-        print("WARNING: You have a CUDA device, so you should probably run with --cuda")
+def execute_transfer_data(epoch_index, ratio, s_t_ratio,dataset,target_list,source_list,lc_flag,random_flag=0):
 
     np.random.seed(cfg.RNG_SEED)
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(_GPUID)
+    from da_test_net import get_last_model_path
+    args_model_dir = get_last_model_path(dataset)
 
-    args_dataset = _dataset
-    args_cuda = _cuda
-    args_gc = _gc
-    args_lc = _lc
-    args_part = _part
-    args_model_dir = _model_dir
-    args_output_dir = _output_dir
-    args_num_epoch = _modelepoch
-    print("ratio:", _ratio)
-    args_ratio = _ratio
-    args_epoch_index = _epochindex
-    args_st_ratio = _st_ratio
-    args_test_flag = _test_flag
-
-    if args_dataset == "cityscapefoggy":
+    if dataset == "cityscapefoggy":
+        args_t_imdb_name = "cityscapefoggy_trainval"
+    elif dataset == "clipart":
+        args_t_imdb_name = "clipart_trainval"
+    elif dataset == "watercolor":
         print("loading our dataset...........")
-        args_t_imdbtest_name = "cityscapefoggy_test"
-        args_set_cfgs = [
-            "ANCHOR_SCALES",
-            "[8,16,32]",
-            "ANCHOR_RATIOS",
-            "[0.5,1,2]",
-            "MAX_NUM_GT_BOXES",
-            "30",
-        ]
-
-    elif args_dataset == "clipart":
-        print("loading our dataset...........")
-        args_t_imdbtest_name = "clipart_test"
-        args_set_cfgs = [
-            "ANCHOR_SCALES",
-            "[8,16,32]",
-            "ANCHOR_RATIOS",
-            "[0.5,1,2]",
-            "MAX_NUM_GT_BOXES",
-            "20",
-        ]
-
-    elif args_dataset == "watercolor":
-        print("loading our dataset...........")
-        args_t_imdbtest_name = "watercolor_test"
-        args_set_cfgs = [
-            "ANCHOR_SCALES",
-            "[8,16,32]",
-            "ANCHOR_RATIOS",
-            "[0.5,1,2]",
-            "MAX_NUM_GT_BOXES",
-            "20",
-        ]
+        args_t_imdb_name = "watercolor_trainval"
 
     args_cfg_file = (
         "cfgs/{}_ls.yml".format(args_net)
@@ -323,12 +287,10 @@ def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
 
     cfg.TRAIN.USE_FLIPPED = False
 
-
-    #目标域训练集:test
+    #目标域训练集:train
     imdb, roidb, ratio_list, ratio_index = combined_roidb(
-        args_t_imdbtest_name, False
+        args_t_imdb_name, False
     )
-
     imdb.competition_mode(on=True)
     print("{:d} roidb entries".format(len(roidb)))
 
@@ -383,10 +345,10 @@ def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
     start = time.time()
     all_boxes=get_test_boxes(imdb, roidb, ratio_list, ratio_index,fasterRCNN)
 
-    #对目标域 test 检测存储结果
-    imdb.evaluate_detections(all_boxes, args_output_dir, args_epoch_index,False)
+    #对目标域 train 检测不确定度
+    detection_for_all_images = imdb.evaluate_detections(all_boxes, None, None,True)
     end = time.time()
-    print("测试集 检测时间 time: %0.4fs" % (end - start))
+    print("不确定度 time: %0.4fs" % (end - start))
 
     # with open(det_file, "wb") as f:
     with open("predict_all_boxes.pkl", "wb") as f:
@@ -396,12 +358,71 @@ def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
 
     if not os.path.exists(args_output_dir):
         os.makedirs(args_output_dir)
-    return True
+
+    _source_list=source_list
+    _target_list=target_list
+    _lc_flag=lc_flag
+    args_ratio=ratio
+    args_st_ratio=s_t_ratio
+    args_epoch_index=epoch_index
+
+    if _source_list is not None:
+        print("_source_list:")
+        for i in range(len(_source_list)):
+            _source_list[i] = (_source_list[i].split("/"))[-1]
+        print(_source_list)
+
+        # 如果是train数据，转移图像文件及标注文件
+        print("开始移除源域数据....")
+        if args_test_flag == False:  # TODO
+            imdb.remove_datas_from_source(_source_list, float(args_ratio), args_st_ratio)
+
+    if _target_list is not None:
+        print("_target_list:")
+        for i in range(len(_target_list)):
+            _target_list[i] = (_target_list[i].split("/"))[-1]
+        print(_target_list)
+
+        if _lc_flag==1:
+            import lib.active_tools.chooseStrategy as CS
+            uncertain_list = CS.uncertain_sample(detection_for_all_images, len(detection_for_all_images))
+            for i in range(len(uncertain_list)):
+                uncertain_list[i] = (uncertain_list[i].split("/"))[-1]
+
+            # 与target_list 权重1：1处理排序。
+            i = 0
+            sorted_dic = {}
+            for i in range(0,min(len(_target_list),len(uncertain_list))):
+                item_1 = _target_list[i]
+                item_2 = uncertain_list[i]
+                if not sorted_dic.__contains__(item_1):
+                    sorted_dic[item_1] = 0
+                if not sorted_dic.__contains__(item_2):
+                    sorted_dic[item_2] = 0
+
+                sorted_dic[item_1] += i
+                sorted_dic[item_2] += i
+
+            sorted_target_list_tuple = sorted(sorted_dic.items(), key=lambda d: d[1], reverse=False)
+
+            sorted_target_list = []
+            for item in sorted_target_list_tuple:
+                sorted_target_list.append(item[0])
+
+            _target_list=sorted_target_list
+
+        # 如果是train数据，转移图像文件及标注文件
+        if args_test_flag == False:  # TODO
+            print("开始迁移目标域数据...")
+            imdb.add_datas_from_target(_target_list, float(args_ratio), args_epoch_index, args_st_ratio)
 
 
-if __name__ == "__main__":
-    # excute()
-    pass
+    if random_flag==1:
+        import lib.active_tools.chooseStrategy as CS
+        random_list = CS.random_sample(os.path.join(imdb.get_dataset_path(),"JPEGImages"))
+        l=[]
+        for item in random_list:
+            l.append(item.split('/')[-1])
+        imdb.add_datas_from_target(l, float(args_ratio), args_epoch_index, args_st_ratio)
 
-    # l=write2list(all_boxes)
-    # return l
+

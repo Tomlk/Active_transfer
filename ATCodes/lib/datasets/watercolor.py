@@ -520,6 +520,47 @@ class watercolor(imdb):
         print("Running:\n{}".format(cmd))
         status = subprocess.call(cmd, shell=True)
 
+
+    def do_get_mAP(self):
+        annopath = os.path.join(
+            self._devkit_path, "Annotations", "{:s}.xml"
+        )
+        imagesetfile = os.path.join(
+            self._devkit_path,
+            "ImageSets",
+            "Main",
+            self._image_set + ".txt",
+            )
+        cachedir = os.path.join(self._devkit_path, "annotations_cache")
+        aps = []
+        # The PASCAL VOC metric changed in 2010
+        use_07_metric = True if int(self._year) < 2010 else False
+        print("VOC07 metric? " + ("Yes" if use_07_metric else "No"))
+        for i, cls in enumerate(self._classes):
+            if cls == "__background__":
+                continue
+            filename = self._get_voc_results_file_template().format(cls)
+            rec, prec, ap = voc_eval(
+                filename,
+                annopath,
+                imagesetfile,
+                cls,
+                cachedir,
+                ovthresh=0.5,
+                use_07_metric=use_07_metric,
+            )
+            aps += [ap]
+            print("AP for {} = {:.4f}".format(cls, ap))
+        # print("Mean AP = {:.4f}".format(np.mean(aps)))
+        return np.mean(aps)
+
+    def get_mAP(self, all_boxes, round, epoch_index):
+        self._write_voc_results_file(all_boxes)
+        mAP = self.do_get_mAP()
+        with open(os.path.join(self._devkit_path, "map_record.txt"), "a") as f:
+            f.write("轮数{}: epoch:{},mAP:{}.\n".format(round, epoch_index,mAP))
+        return mAP
+
     def evaluate_detections(self, all_boxes, output_dir,epoch_index,t_train_flag):
         self._write_to_listfile(all_boxes)
         if t_train_flag:

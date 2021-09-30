@@ -12,7 +12,7 @@ import pprint
 import sys
 import time
 
-# import _init_paths
+import _init_paths
 import numpy as np
 import torch
 import torch.nn as nn
@@ -39,6 +39,10 @@ from torch.utils.data.sampler import Sampler
 from lib.domain_tools.domain_classifier_util import Domain_classifier
 
 import lib.active_tools.chooseStrategy as CS
+
+import da_test_net
+# from eval import test_mAP
+from transfer_data import execute_transfer_data
 
 print(sys.path)
 
@@ -246,15 +250,18 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--target_transfer",dest="target_transfer",help="target_transfer",default=1,type=int
+        "--target_transfer", dest="target_transfer", help="target_transfer", default=1, type=int
     )
 
     parser.add_argument(
-        "--source_remove",dest="source_remove",help="source_remove",default=1,type=int
+        "--source_remove", dest="source_remove", help="source_remove", default=1, type=int
     )
 
     parser.add_argument(
-        "--lc_flag",dest="lc_flag",help="lc_flag",default=0,type=int
+        "--lc_flag", dest="lc_flag", help="lc_flag", default=0, type=int
+    )
+    parser.add_argument(
+        "--random_flag",dest="random_flag",help="random_flag",default=0,type=int
     )
 
     args = parser.parse_args()
@@ -458,7 +465,7 @@ if __name__ == "__main__":
     # s_t_ratio应该维持最开始的ratio
     s_t_ratio = args.st_ratio
 
-    for i in range(args.round_num):  # 每次加10%的源数据
+    for round in range(args.round_num):  # 每次加10%的源数据
 
         cfg.TRAIN.USE_FLIPPED = False  # 图像增强：复制
         cfg.USE_GPU_NMS = args.cuda
@@ -564,20 +571,6 @@ if __name__ == "__main__":
             print("network is not defined")
             pdb.set_trace()
 
-        # #观察数据集
-        # print("dataset_t._roidb:",len(dataset_t._roidb))
-        # for item in dataset_t._roidb:
-        #     print(item["img_id"])
-        #     print(item["image"])
-        #     input()
-        # print("dataset_t.data_size:",dataset_t.data_size)
-        # item0=dataset_t.__getitem__(0)
-        # print("data:")
-        # print(item0[0])
-        # print("im_info:")
-        # print(item0[1])
-        # input()
-        # 创建faster-rcnn网络框架
         fasterRCNN.create_architecture()
 
         lr = cfg.TRAIN.LEARNING_RATE
@@ -649,7 +642,7 @@ if __name__ == "__main__":
         # print("iters_per_epoch:",iters_per_epoch)
 
         # iters_per_epoch=100
-
+        print("当前epoch:",args.start_epoch )
         # EFocalLoss网络
         if args.ef:
             FL = EFocalLoss(class_num=2, gamma=args.gamma)
@@ -658,12 +651,11 @@ if __name__ == "__main__":
 
         # count_iter = 0
 
-
-        target_list=None
-        source_list=None
-        if args.target_transfer==1:
-            #迁移
-            DC_target=Domain_classifier(fasterRCNN,dataset_t)
+        target_list = None
+        source_list = None
+        if args.target_transfer == 1:
+            # 迁移
+            DC_target = Domain_classifier(fasterRCNN, dataset_t)
             gt_boxes.data.resize_(1, 1, 5).zero_()
             num_boxes.data.resize_(1).zero_()
             DC_target.set_args(
@@ -672,10 +664,10 @@ if __name__ == "__main__":
                 args.da_weight
             )
 
-            target_list=DC_target.get_calculate_domain_list(True)
+            target_list = DC_target.get_calculate_domain_list(True)
 
-        if args.source_remove==1:
-            DC_source=Domain_classifier(fasterRCNN,dataset_s)
+        if args.source_remove == 1:
+            DC_source = Domain_classifier(fasterRCNN, dataset_s)
             gt_boxes.data.resize_(1, 1, 5).zero_()
             num_boxes.data.resize_(1).zero_()
             DC_source.set_args(
@@ -684,19 +676,19 @@ if __name__ == "__main__":
                 args.da_weight
             )
 
-            source_list=DC_source.get_calculate_domain_list(False)
+            source_list = DC_source.get_calculate_domain_list(False)
 
-        import da_test_net
-        Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), args.start_epoch, s_t_ratio,
-                                                  args.dataset, args.gpu_id,target_list,source_list,args.lc_flag)
-
+        # 迁移数据
+        execute_transfer_data(args.start_epoch, float(1.0 / int(args.round_num)), s_t_ratio, args.dataset,
+                              target_list, source_list, args.lc_flag,args.random_flag)
+        # Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), args.start_epoch, s_t_ratio,
+        #                                           args.dataset, args.gpu_id,target_list,source_list,args.lc_flag)
 
         s_imdb, s_roidb, s_ratio_list, s_ratio_index = combined_roidb(args.s_imdb_name)
         s_train_size = len(s_roidb)  # add flipped         image_index*2
 
         t_imdb, t_roidb, t_ratio_list, t_ratio_index = combined_roidb(args.t_imdb_name)
         t_train_size = len(t_roidb)  # add flipped         image_index*2
-
 
         s_sampler_batch = sampler(s_train_size, args.batch_size)
         t_sampler_batch = sampler(t_train_size, args.batch_size)
@@ -733,15 +725,21 @@ if __name__ == "__main__":
             num_workers=args.num_workers,
         )
 
-
         iters_per_epoch = int(s_train_size / (args.batch_size))
-        print("iters_per_epoch:",iters_per_epoch)
+        print("iters_per_epoch:", iters_per_epoch)
 
+        # if args.resume == True:
+        #     args.max_epochs = args.start_epoch + 5
 
-        if args.resume == True:
-            args.max_epochs = args.start_epoch + 1
+        max_epoch=1
+        if round==0:
+            max_epoch=5
+        elif round==1:
+            max_epoch=3
+        elif round==2 or round==3:
+            max_epoch==2
 
-        for epoch in range(args.start_epoch, args.max_epochs):
+        for epoch in range(max_epoch):
 
             # setting to train mode
             fasterRCNN.train()
@@ -761,9 +759,9 @@ if __name__ == "__main__":
                     data_iter_s = iter(dataloader_s)  # 从头开始获得迭代器
                     data_s = next(data_iter_s)  # 获得一批数据
                 try:
-                    data_t = next(data_iter_t) # 还有剩余的目标域数据
+                    data_t = next(data_iter_t)  # 还有剩余的目标域数据
                 except:
-                    data_iter_t = iter(dataloader_t) # 从头开始获得迭代器
+                    data_iter_t = iter(dataloader_t)  # 从头开始获得迭代器
                     data_t = next(data_iter_t)  # 获得一批数据
                 # eta = 1.0
                 # count_iter += 1
@@ -820,7 +818,7 @@ if __name__ == "__main__":
                 # gt is empty
                 gt_boxes.data.resize_(1, 1, 5).zero_()
                 num_boxes.data.resize_(1).zero_()
-                out_d_pixel, out_d, target_ins_da = fasterRCNN( # 目标域获得
+                out_d_pixel, out_d, target_ins_da = fasterRCNN(  # 目标域获得
                     im_data,
                     im_info,
                     im_cls_lb,
@@ -865,7 +863,7 @@ if __name__ == "__main__":
                     fg_cnt = torch.sum(rois_label.data.ne(0))
                     bg_cnt = rois_label.data.numel() - fg_cnt
 
-                    print("round: {}".format(i + 1))
+                    print("round: {}".format(round + 1))
                     print(
                         "[session %d][epoch %2d][iter %4d/%4d] loss: %.4f, lr: %.2e"
                         % (args.session, epoch, step, iters_per_epoch, loss_temp, lr)
@@ -893,41 +891,29 @@ if __name__ == "__main__":
 
                     loss_temp = 0
                     start = time.time()
-            if epoch % args.checkpoint_interval == 0 or epoch == args.max_epochs:
-                save_name = os.path.join(
-                    output_dir, "{}.pth".format(args.dataset + "_" + str(epoch)),
-                )
-                save_checkpoint(
-                    {
-                        "session": args.session,
-                        "epoch": epoch + 1,
-                        "model": fasterRCNN.state_dict(),
-                        "optimizer": optimizer.state_dict(),
-                        "pooling_mode": cfg.POOLING_MODE,
-                        "class_agnostic": args.class_agnostic,
-                    },
-                    save_name,
-                )
-                print("save model: {}".format(save_name))
 
+            #mAP = test_mAP.get_mAP(args.dataset, i + 1, epoch)
+        #覆盖
+        save_name = os.path.join(output_dir, "{}.pth".format(args.dataset + "_" + str(args.start_epoch + 1)),)
+        save_checkpoint(
+            {
+                "session": args.session,
+                "epoch": args.start_epoch + 1,
+                "model": fasterRCNN.state_dict(),
+                "optimizer": optimizer.state_dict(),
+                "pooling_mode": cfg.POOLING_MODE,
+                "class_agnostic": args.class_agnostic,
+            },
+            save_name,
+        )
+        print("save model: {}".format(save_name))
+        # 测试
+        Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), args.start_epoch+1, s_t_ratio,
+                                                  args.dataset, args.gpu_id, target_list, source_list, args.lc_flag)
+        if not Detection_result:
+            print("some error!")
+            break
 
-
-                # 测试当前模型 并进行数据迁移
-
-                # import da_test_net
-                # Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), epoch, s_t_ratio,
-                #                                           args.dataset, args.gpu_id)
-                # if args.dataset=="cityscapefoggy":
-                #     import test_cityscapefoggy
-                #     Detection_result=test_cityscapefoggy.start_test(float(1.0/int(args.round_num)),epoch,s_t_ratio)
-                # elif args.dataset=="bdd":
-                #     import test_bddnight10
-                #     Detection_result=test_bddnight10.start_test(float(1.0/int(args.round_num)),epoch,s_t_ratio)
-                # elif args.dataset=="water":
-
-                print("\n Hello wolrd\n")
-                if not Detection_result:
-                    print("some error!")
-                    break
+    print("\n Hello wolrd\n")
 
     # getlist=CS.uncertain_sample()

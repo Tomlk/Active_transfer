@@ -246,32 +246,17 @@ def get_test_boxes(imdb, roidb, ratio_list, ratio_index,faster_rcnn):
 
     return all_boxes
 
-def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
-           _modelepoch, _ratio, _epochindex, _st_ratio, _test_flag, _target_list, _source_list, _lc_flag=0):
-    print("_ratio:", _ratio)
 
-    if torch.cuda.is_available() and not _cuda:
-        print("WARNING: You have a CUDA device, so you should probably run with --cuda")
+args_net = "vgg16"
+
+def get_mAP(dataset,round,epoch_index):
 
     np.random.seed(cfg.RNG_SEED)
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(_GPUID)
+    from da_test_net import get_last_model_path
+    args_model_dir = get_last_model_path(dataset)
 
-    args_dataset = _dataset
-    args_cuda = _cuda
-    args_gc = _gc
-    args_lc = _lc
-    args_part = _part
-    args_model_dir = _model_dir
-    args_output_dir = _output_dir
-    args_num_epoch = _modelepoch
-    print("ratio:", _ratio)
-    args_ratio = _ratio
-    args_epoch_index = _epochindex
-    args_st_ratio = _st_ratio
-    args_test_flag = _test_flag
-
-    if args_dataset == "cityscapefoggy":
+    if dataset == "cityscapefoggy":
         print("loading our dataset...........")
         args_t_imdbtest_name = "cityscapefoggy_test"
         args_set_cfgs = [
@@ -282,8 +267,7 @@ def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
             "MAX_NUM_GT_BOXES",
             "30",
         ]
-
-    elif args_dataset == "clipart":
+    elif dataset == "clipart":
         print("loading our dataset...........")
         args_t_imdbtest_name = "clipart_test"
         args_set_cfgs = [
@@ -295,7 +279,7 @@ def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
             "20",
         ]
 
-    elif args_dataset == "watercolor":
+    elif dataset == "watercolor":
         print("loading our dataset...........")
         args_t_imdbtest_name = "watercolor_test"
         args_set_cfgs = [
@@ -323,15 +307,12 @@ def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
 
     cfg.TRAIN.USE_FLIPPED = False
 
-
-    #目标域训练集:test
+    #目标域训练集:train
     imdb, roidb, ratio_list, ratio_index = combined_roidb(
         args_t_imdbtest_name, False
     )
-
     imdb.competition_mode(on=True)
     print("{:d} roidb entries".format(len(roidb)))
-
     load_name = args_model_dir
     print(load_name)
 
@@ -380,28 +361,9 @@ def excute(_GPUID, _cuda, _gc, _lc, _part, _dataset, _model_dir, _output_dir,
 
     print("load model successfully!")
 
-    start = time.time()
     all_boxes=get_test_boxes(imdb, roidb, ratio_list, ratio_index,fasterRCNN)
 
-    #对目标域 test 检测存储结果
-    imdb.evaluate_detections(all_boxes, args_output_dir, args_epoch_index,False)
-    end = time.time()
-    print("测试集 检测时间 time: %0.4fs" % (end - start))
+    mAP=imdb.get_mAP(all_boxes,round,epoch_index)
 
-    # with open(det_file, "wb") as f:
-    with open("predict_all_boxes.pkl", "wb") as f:
-        pickle.dump(all_boxes, f, pickle.HIGHEST_PROTOCOL)
+    return mAP
 
-    print("Evaluating detections")
-
-    if not os.path.exists(args_output_dir):
-        os.makedirs(args_output_dir)
-    return True
-
-
-if __name__ == "__main__":
-    # excute()
-    pass
-
-    # l=write2list(all_boxes)
-    # return l

@@ -1,5 +1,23 @@
 import os
 
+
+def get_last_model_path(dataset_name):
+    models=os.listdir(os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model"))
+
+    # models=os.listdir("./data/experiments/SW_Faster_ICR_CCR/bddnight10/model/")
+    modelfiles=models
+    for item in modelfiles:
+        if not item.endswith(".pth"):
+            modelfiles.remove(item)
+
+    modelfiles.sort()
+    modelfiles.sort(key = lambda i:len(i),reverse=False)
+    print(modelfiles)
+    currentmodel=modelfiles[-1]
+    model_dir=os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model",currentmodel)
+    return model_dir
+
+
 def start_test(ratio,epoch_index,s_t_ratio,dataset_name,GPUID,target_list,source_list,lc_flag):
     
     #不能用 os.system 会有并发问题
