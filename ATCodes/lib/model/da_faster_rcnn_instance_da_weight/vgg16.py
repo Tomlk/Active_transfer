@@ -9,8 +9,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
-from lib.model.da_faster_rcnn_instance_da_weight.faster_rcnn import _fasterRCNN
-from  lib.model.utils.config import cfg
+from model.da_faster_rcnn_instance_da_weight.faster_rcnn import _fasterRCNN
+from model.utils.config import cfg
 from torch.autograd import Variable
 
 

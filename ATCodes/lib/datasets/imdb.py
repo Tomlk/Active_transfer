@@ -98,7 +98,7 @@ class imdb(object):
     def default_roidb(self):
         raise NotImplementedError
 
-    def evaluate_detections(self, all_boxes, output_dir=None, epoch_index=12, t_train_flag=True):
+    def evaluate_detections(self, all_boxes, output_dir=None, epoch_index=12):
         """
     all_boxes is a list of length number-of-classes.
     Each list element is a list of length number-of-images.
@@ -116,6 +116,9 @@ class imdb(object):
         raise NotImplementedError
 
     def get_mAP(self, all_boxes, round, epoch_index):
+        raise NotImplementedError
+
+    def get_detection_boxes_result(self,all_boxes):
         raise NotImplementedError
 
     def get_dataset_path(self):

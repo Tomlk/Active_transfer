@@ -326,7 +326,7 @@ class cityscapefoggy(imdb):
         path = os.path.join(filedir, filename)
         return path
 
-    def _write_to_listfile(self, all_boxes):
+    def  _write_to_listfile(self, all_boxes):
         d = {}
         for _, index in enumerate(self.image_index):
             d[index] = []
@@ -517,10 +517,12 @@ class cityscapefoggy(imdb):
             f.write("轮数{}: epoch:{},mAP:{}.\n".format(round, epoch_index,mAP))
         return mAP
 
-    def evaluate_detections(self, all_boxes, output_dir, epoch_index, t_train_flag):
+    def get_detection_boxes_result(self,all_boxes):
         self._write_to_listfile(all_boxes)
-        if t_train_flag:
-            return self.detection_result
+        return self.detection_result
+
+    def evaluate_detections(self, all_boxes, output_dir, epoch_index):
+        self._write_to_listfile(all_boxes)
         self._write_voc_results_file(all_boxes)
         self._do_python_eval(output_dir, epoch_index)
         if self.config["matlab_eval"]:

@@ -3,12 +3,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
-from lib.model.da_faster_rcnn_instance_da_weight.DA import _InstanceDA
-from lib.model.roi_layers import ROIAlign, ROIPool
-from lib.model.rpn.proposal_target_layer_cascade import _ProposalTargetLayer
-from lib.model.rpn.rpn import _RPN
-from lib.model.utils.config import cfg
-from lib.model.utils.net_utils import (
+from model.da_faster_rcnn_instance_da_weight.DA import _InstanceDA
+from model.roi_layers import ROIAlign, ROIPool
+from model.rpn.proposal_target_layer_cascade import _ProposalTargetLayer
+from model.rpn.rpn import _RPN
+from model.utils.config import cfg
+from model.utils.net_utils import (
     _affine_grid_gen,
     _affine_theta,
     _crop_pool_layer,
@@ -17,9 +17,7 @@ from lib.model.utils.net_utils import (
 )
 from torch.autograd import Variable
 
-'''
-返回当前结果
-'''
+
 class _fasterRCNN(nn.Module):
     """ faster RCNN """
 
@@ -77,7 +75,6 @@ class _fasterRCNN(nn.Module):
             self.RCNN_rpn.train()
 
         batch_size = im_data.size(0)
-
 
         im_info = im_info.data
         gt_boxes = gt_boxes.data

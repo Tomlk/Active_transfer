@@ -18,10 +18,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision.transforms as transforms
-from lib.model.da_faster_rcnn_instance_da_weight.resnet import resnet
-from lib.model.da_faster_rcnn_instance_da_weight.vgg16 import vgg16
-from lib.model.utils.config import cfg, cfg_from_file, cfg_from_list, get_output_dir
-from lib.model.utils.net_utils import (
+from model.da_faster_rcnn_instance_da_weight.resnet import resnet
+from model.da_faster_rcnn_instance_da_weight.vgg16 import vgg16
+from model.utils.config import cfg, cfg_from_file, cfg_from_list, get_output_dir
+from model.utils.net_utils import (
     EFocalLoss,
     FocalLoss,
     adjust_learning_rate,
@@ -36,12 +36,11 @@ from lib.roi_da_data_layer.roidb import combined_roidb
 from torch.autograd import Variable
 from torch.utils.data.sampler import Sampler
 
+print(sys.path)
+
 from lib.domain_tools.domain_classifier_util import Domain_classifier
 
-import lib.active_tools.chooseStrategy as CS
-
 import da_test_net
-# from eval import test_mAP
 from transfer_data import execute_transfer_data
 
 print(sys.path)
@@ -274,14 +273,7 @@ def parse_args():
 
 
 class sampler(Sampler):
-
     def __init__(self, train_size, batch_size):
-        '''
-        构造函数
-        Args:
-            train_size:数据集尺寸
-            batch_size:批处理尺寸
-        '''
         self.num_data = train_size
         self.num_per_batch = int(train_size / batch_size)
         self.batch_size = batch_size
@@ -308,7 +300,6 @@ class sampler(Sampler):
 
     def __len__(self):
         return self.num_data
-
 
 if __name__ == "__main__":
 
@@ -464,11 +455,10 @@ if __name__ == "__main__":
 
     # s_t_ratio应该维持最开始的ratio
     s_t_ratio = args.st_ratio
+    cfg.USE_GPU_NMS = args.cuda
+    cfg.TRAIN.USE_FLIPPED = False  # 图像增强：复制
 
     for round in range(args.round_num):  # 每次加10%的源数据
-
-        cfg.TRAIN.USE_FLIPPED = False  # 图像增强：复制
-        cfg.USE_GPU_NMS = args.cuda
 
         s_imdb, s_roidb, s_ratio_list, s_ratio_index = combined_roidb(args.s_imdb_name)
         s_train_size = len(s_roidb)  # add flipped         image_index*2
@@ -620,9 +610,6 @@ if __name__ == "__main__":
             modelfiles.sort(key=lambda i: len(i), reverse=False)
 
             currentmodel = modelfiles[-1]
-            # item=currentmodel.split('.')[0]
-            # modelepoch=item.split('_')[-1]
-
             args.resume_name = currentmodel
             print(args.resume_name)
             load_name = os.path.join(output_dir, args.resume_name)
@@ -636,14 +623,7 @@ if __name__ == "__main__":
             if "pooling_mode" in checkpoint.keys():
                 cfg.POOLING_MODE = checkpoint["pooling_mode"]
             print("loaded checkpoint %s" % (load_name))
-
-        # iters_per_epoch = int(10000 / args.batch_size)
-        # iters_per_epoch = min(int(s_train_size / (args.batch_size)), int(20000 / args.batch_size))
-        # print("iters_per_epoch:",iters_per_epoch)
-
-        # iters_per_epoch=100
         print("当前epoch:",args.start_epoch )
-        # EFocalLoss网络
         if args.ef:
             FL = EFocalLoss(class_num=2, gamma=args.gamma)
         else:
@@ -681,8 +661,7 @@ if __name__ == "__main__":
         # 迁移数据
         execute_transfer_data(args.start_epoch, float(1.0 / int(args.round_num)), s_t_ratio, args.dataset,
                               target_list, source_list, args.lc_flag,args.random_flag)
-        # Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), args.start_epoch, s_t_ratio,
-        #                                           args.dataset, args.gpu_id,target_list,source_list,args.lc_flag)
+
 
         s_imdb, s_roidb, s_ratio_list, s_ratio_index = combined_roidb(args.s_imdb_name)
         s_train_size = len(s_roidb)  # add flipped         image_index*2
@@ -732,15 +711,8 @@ if __name__ == "__main__":
         #     args.max_epochs = args.start_epoch + 5
 
         max_epoch=1
-        if round==0:
-            max_epoch=5
-        elif round==1:
-            max_epoch=3
-        elif round==2 or round==3:
-            max_epoch==2
 
         for epoch in range(max_epoch):
-
             # setting to train mode
             fasterRCNN.train()
             loss_temp = 0
@@ -908,8 +880,7 @@ if __name__ == "__main__":
         )
         print("save model: {}".format(save_name))
         # 测试
-        Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), args.start_epoch+1, s_t_ratio,
-                                                  args.dataset, args.gpu_id, target_list, source_list, args.lc_flag)
+        Detection_result = da_test_net.start_test(args.dataset, args.gpu_id)
         if not Detection_result:
             print("some error!")
             break

@@ -5,11 +5,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
-from lib.model.da_faster_rcnn_instance_da_weight.LabelResizeLayer import (
+from model.da_faster_rcnn_instance_da_weight.LabelResizeLayer import (
     ImageLabelResizeLayer,
     InstanceLabelResizeLayer,
 )
-from lib.model.utils.config import cfg
+from model.utils.config import cfg
 from torch.autograd import Function, Variable
 
 
@@ -58,7 +58,7 @@ class _InstanceDA(nn.Module):
         self.dc_relu2 = nn.ReLU()
         self.dc_drop2 = nn.Dropout(p=0.5)
 
-        self.clssifer = nn.Linear(1024, 1) #域分类器
+        self.clssifer = nn.Linear(1024, 1)
         self.LabelResizeLayer = InstanceLabelResizeLayer()
 
     def forward(self, x, need_backprop):

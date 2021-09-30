@@ -6,22 +6,22 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import torch
 import torch.utils.data as data
-from lib.model.rpn.bbox_transform import bbox_transform_inv, clip_boxes
-from lib.model.utils.config import cfg
+from model.rpn.bbox_transform import bbox_transform_inv, clip_boxes
+from model.utils.config import cfg
 from PIL import Image
-from lib.roi_da_data_layer.minibatch import get_minibatch
+from roi_da_data_layer.minibatch import get_minibatch
 
 
 class roibatchLoader(data.Dataset):
     def __init__(
-        self,
-        roidb,
-        ratio_list,
-        ratio_index,
-        batch_size,
-        num_classes,
-        training=True,
-        normalize=None,
+            self,
+            roidb,
+            ratio_list,
+            ratio_index,
+            batch_size,
+            num_classes,
+            training=True,
+            normalize=None,
     ):
         self._roidb = roidb
         self._num_classes = num_classes
@@ -55,7 +55,7 @@ class roibatchLoader(data.Dataset):
                 target_ratio = 1
 
             self.ratio_list_batch[
-                left_idx : (right_idx + 1)
+            left_idx : (right_idx + 1)
             ] = target_ratio  # trainset ratio list ,each batch is same number
 
     def __getitem__(self, index):  # only one sample
@@ -199,7 +199,7 @@ class roibatchLoader(data.Dataset):
 
             # check the bounding box:
             not_keep = (gt_boxes[:, 0] == gt_boxes[:, 2]) | (
-                gt_boxes[:, 1] == gt_boxes[:, 3]
+                    gt_boxes[:, 1] == gt_boxes[:, 3]
             )
             keep = torch.nonzero(not_keep == 0).view(-1)
 

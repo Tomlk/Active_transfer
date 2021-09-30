@@ -1,4 +1,39 @@
+from __future__ import absolute_import, division, print_function
+
+import argparse
 import os
+import pdb
+import pickle
+import pprint
+import sys
+import time
+
+import _init_paths
+import cv2
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# from model.faster_rcnn.vgg16 import vgg16
+from model.da_faster_rcnn.resnet import resnet
+from model.da_faster_rcnn.vgg16 import vgg16
+
+# from model.nms.nms_wrapper import nms
+from model.roi_layers import nms
+from model.rpn.bbox_transform import bbox_transform_inv, clip_boxes
+from model.utils.config import cfg, cfg_from_file, cfg_from_list, get_output_dir
+from model.utils.net_utils import load_net, save_net, vis_detections
+from roi_da_data_layer.roibatchLoader import roibatchLoader
+from roi_da_data_layer.roidb import combined_roidb
+from torch.autograd import Variable
+
+try:
+    xrange  # Python 2
+except NameError:
+    xrange = range  # Python 3
+
+from lib.detection_boxes_tools import detection_boxes
 
 
 def get_last_model_path(dataset_name):
@@ -18,43 +53,141 @@ def get_last_model_path(dataset_name):
     return model_dir
 
 
-def start_test(ratio,epoch_index,s_t_ratio,dataset_name,GPUID,target_list,source_list,lc_flag):
-    
-    #不能用 os.system 会有并发问题
+args_output_dir = "./"
+args_net = "vgg16"
 
-    import eval.test_SW_ICR_CCR as TEST
-
-    net = "vgg16"
-    part = "test_t"
-    output_dir=os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"result")
-    dataset = dataset_name
-
-    models=os.listdir(os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model"))
-
-    # models=os.listdir("./data/experiments/SW_Faster_ICR_CCR/bddnight10/model/")
-    modelfiles=models
-    for item in modelfiles:
-        if not item.endswith(".pth"):
-            modelfiles.remove(item)
-
-    modelfiles.sort()
-    modelfiles.sort(key = lambda i:len(i),reverse=False) 
-    print(modelfiles)
-    currentmodel=modelfiles[-1]
-    item=currentmodel.split('.')[0]
-    modelepoch=item.split('_')[-1]
-
-    # GPUID=1
-
-    print("modelepoch:",modelepoch)
-
-    model_dir=os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model",currentmodel)
+args_lc = True
+args_gc = True
+args_class_agnostic = False
+args_large_scale=False
 
 
-    
-    print("ratio:",ratio)
-    print("model:",currentmodel)
-    result=TEST.excute(_GPUID=GPUID,_cuda=True,_gc=True,_lc=True,_part=part,_dataset=dataset,_model_dir=model_dir,_output_dir=output_dir,
-                    _modelepoch=modelepoch,_ratio=ratio,_epochindex=epoch_index,_st_ratio=s_t_ratio,_test_flag=False,_target_list=target_list,_source_list=source_list,_lc_flag=lc_flag)
 
-    return result
+def start_test(_GPUID,_dataset,_round):
+    model_dir=get_last_model_path(_dataset)
+    np.random.seed(cfg.RNG_SEED)
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(_GPUID)
+    t_imdb_test_name=""
+    print("loading our dataset...........")
+    if _dataset == "cityscapefoggy":
+        t_imdb_test_name = "cityscapefoggy_test"
+        args_set_cfgs = [
+            "ANCHOR_SCALES",
+            "[8,16,32]",
+            "ANCHOR_RATIOS",
+            "[0.5,1,2]",
+            "MAX_NUM_GT_BOXES",
+            "30",
+        ]
+
+    elif _dataset == "clipart":
+        t_imdb_test_name = "clipart_test"
+        args_set_cfgs = [
+            "ANCHOR_SCALES",
+            "[8,16,32]",
+            "ANCHOR_RATIOS",
+            "[0.5,1,2]",
+            "MAX_NUM_GT_BOXES",
+            "20",
+        ]
+
+    elif _dataset == "watercolor":
+        t_imdb_test_name = "watercolor_test"
+        args_set_cfgs = [
+            "ANCHOR_SCALES",
+            "[8,16,32]",
+            "ANCHOR_RATIOS",
+            "[0.5,1,2]",
+            "MAX_NUM_GT_BOXES",
+            "20",
+        ]
+
+    args_cfg_file = (
+        "cfgs/{}_ls.yml".format(args_net)
+        if args_large_scale
+        else "cfgs/{}.yml".format(args_net)
+    )
+
+    if args_cfg_file is not None:
+        cfg_from_file(args_cfg_file)
+    if args_set_cfgs is not None:
+        cfg_from_list(args_set_cfgs)
+
+    print("Using config:")
+    pprint.pprint(cfg)
+
+    cfg.TRAIN.USE_FLIPPED = False
+
+
+    #目标域训练集:test
+    imdb, roidb, ratio_list, ratio_index = combined_roidb(
+        t_imdb_test_name, False
+    )
+
+    imdb.competition_mode(on=True)
+    print("{:d} roidb entries".format(len(roidb)))
+
+    print(model_dir)
+
+    # initilize the network here.
+    if args_net == "vgg16":
+        fasterRCNN = vgg16(
+            imdb.classes,
+            pretrained=False,
+            pretrained_path=None,
+            class_agnostic=args_class_agnostic,
+            lc=args_lc,
+            gc=args_gc,
+        )
+    elif args_net == "res101":
+        fasterRCNN = resnet(
+            imdb.classes,
+            101,
+            pretrained=False,
+            pretrained_path=None,
+            class_agnostic=args_class_agnostic,
+            lc=args_lc,
+            gc=args_gc,
+        )
+    elif args_net == "res50":
+        fasterRCNN = resnet(
+            imdb.classes, 50, pretrained=False, class_agnostic=args_class_agnostic
+        )
+    elif args_net == "res152":
+        fasterRCNN = resnet(
+            imdb.classes, 152, pretrained=False, class_agnostic=args_class_agnostic
+        )
+    else:
+        print("network is not defined")
+        pdb.set_trace()
+
+    fasterRCNN.create_architecture()
+
+    print("load checkpoint %s" % (model_dir))
+    checkpoint = torch.load(model_dir)
+    fasterRCNN.load_state_dict(
+        {k: v for k, v in checkpoint["model"].items() if k in fasterRCNN.state_dict()}
+    )
+    # fasterRCNN.load_state_dict(checkpoint['model'])
+    if "pooling_mode" in checkpoint.keys():
+        cfg.POOLING_MODE = checkpoint["pooling_mode"]
+
+    print("load model successfully!")
+
+    start = time.time()
+    all_boxes=detection_boxes.get_test_boxes(imdb, roidb, ratio_list, ratio_index,fasterRCNN)
+
+    #对目标域 test 检测并存储结果
+    imdb.evaluate_detections(all_boxes, args_output_dir, _round)
+    end = time.time()
+    print("测试集 检测时间 time: %0.4fs" % (end - start))
+
+    # with open(det_file, "wb") as f:
+    with open("predict_all_boxes.pkl", "wb") as f:
+        pickle.dump(all_boxes, f, pickle.HIGHEST_PROTOCOL)
+
+    print("Evaluating detections")
+
+    if not os.path.exists(args_output_dir):
+        os.makedirs(args_output_dir)
+    return True
