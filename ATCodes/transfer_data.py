@@ -48,8 +48,9 @@ momentum = cfg.TRAIN.MOMENTUM
 weight_decay = cfg.TRAIN.WEIGHT_DECAY
 
 from lib.detection_boxes_tools import detection_boxes
+import lib.active_tools.chooseStrategy as CS
 
-def execute_transfer_data(epoch_index, ratio, s_t_ratio,dataset,target_list,source_list,lc_flag,random_flag=0):
+def execute_transfer_data(epoch_index, ratio, s_t_ratio,dataset,strategy,target_list=[],source_list=[]):
 
     np.random.seed(cfg.RNG_SEED)
 
@@ -160,17 +161,6 @@ def execute_transfer_data(epoch_index, ratio, s_t_ratio,dataset,target_list,sour
 
     print("load model successfully!")
 
-    start = time.time()
-    all_boxes=detection_boxes.get_test_boxes(imdb, roidb, ratio_list, ratio_index,fasterRCNN)
-
-    #对目标域 train 检测不确定度
-    detection_for_all_images = imdb.get_detection_boxes_result(all_boxes)
-    end = time.time()
-    print("不确定度 time: %0.4fs" % (end - start))
-
-    # with open(det_file, "wb") as f:
-    with open("predict_all_boxes.pkl", "wb") as f:
-        pickle.dump(all_boxes, f, pickle.HIGHEST_PROTOCOL)
 
     print("Evaluating detections")
 
@@ -179,33 +169,47 @@ def execute_transfer_data(epoch_index, ratio, s_t_ratio,dataset,target_list,sour
 
     _source_list=source_list
     _target_list=target_list
-    _lc_flag=lc_flag
     args_ratio=ratio
     args_st_ratio=s_t_ratio
     args_epoch_index=epoch_index
 
-    if _source_list is not None:
-        print("_source_list:")
-        for i in range(len(_source_list)):
-            _source_list[i] = (_source_list[i].split("/"))[-1]
-        print(_source_list)
+    print("开始迁移目标域数据...")
+    if strategy==0:
+        random_list = CS.random_sample(os.path.join(imdb.get_dataset_path(),"JPEGImages"))
+        l=[]
+        for item in random_list:
+            l.append(item.split('/')[-1])
+        imdb.add_datas_from_target(l, float(args_ratio), args_epoch_index, args_st_ratio)
+    elif strategy==1:
+        start = time.time()
+        all_boxes=detection_boxes.get_test_boxes(imdb, roidb, ratio_list, ratio_index,fasterRCNN)
 
-        # 如果是train数据，转移图像文件及标注文件
-        print("开始移除源域数据....")
-        imdb.remove_datas_from_source(_source_list, float(args_ratio), args_st_ratio)
-
-    if _target_list is not None:
+        #对目标域 train 检测不确定度
+        detection_for_all_images = imdb.get_detection_boxes_result(all_boxes)
+        end = time.time()
+        print("不确定度 time: %0.4fs" % (end - start))
+        uncertain_list = CS.uncertain_sample(detection_for_all_images, len(detection_for_all_images))
+        for i in range(len(uncertain_list)):
+            uncertain_list[i] = (uncertain_list[i].split("/"))[-1]
+        imdb.add_datas_from_target(uncertain_list, float(args_ratio), args_epoch_index, args_st_ratio)
+    elif strategy==2:
         print("_target_list:")
         for i in range(len(_target_list)):
             _target_list[i] = (_target_list[i].split("/"))[-1]
-        print(_target_list)
+        # 如果是train数据，转移图像文件及标注文件
+        imdb.add_datas_from_target(_target_list, float(args_ratio), args_epoch_index, args_st_ratio)
+    elif strategy==3:
+        start = time.time()
+        all_boxes=detection_boxes.get_test_boxes(imdb, roidb, ratio_list, ratio_index,fasterRCNN)
 
-        if _lc_flag==1:
-            import lib.active_tools.chooseStrategy as CS
-            uncertain_list = CS.uncertain_sample(detection_for_all_images, len(detection_for_all_images))
-            for i in range(len(uncertain_list)):
-                uncertain_list[i] = (uncertain_list[i].split("/"))[-1]
+        #对目标域 train 检测不确定度
+        detection_for_all_images = imdb.get_detection_boxes_result(all_boxes)
+        end = time.time()
+        print("不确定度 time: %0.4fs" % (end - start))
+        uncertain_list = CS.uncertain_sample(detection_for_all_images, len(detection_for_all_images))
 
+        for i in range(len(uncertain_list)):
+            uncertain_list[i] = (uncertain_list[i].split("/"))[-1]
             # 与target_list 权重1：1处理排序。
             i = 0
             sorted_dic = {}
@@ -227,18 +231,63 @@ def execute_transfer_data(epoch_index, ratio, s_t_ratio,dataset,target_list,sour
                 sorted_target_list.append(item[0])
 
             _target_list=sorted_target_list
+            imdb.add_datas_from_target(_target_list, float(args_ratio), args_epoch_index, args_st_ratio)
+    elif strategy==4:
+        print("_source_list:")
+        for i in range(len(_source_list)):
+            _source_list[i] = (_source_list[i].split("/"))[-1]
+        print(_source_list)
 
         # 如果是train数据，转移图像文件及标注文件
-        print("开始迁移目标域数据...")
+        # print("开始移除源域数据....")
+        imdb.remove_datas_from_source(_source_list, float(args_ratio), args_st_ratio)
+
+        print("_target_list:")
+        for i in range(len(_target_list)):
+            _target_list[i] = (_target_list[i].split("/"))[-1]
+            # 如果是train数据，转移图像文件及标注文件
         imdb.add_datas_from_target(_target_list, float(args_ratio), args_epoch_index, args_st_ratio)
 
+    elif strategy==5:
+        print("_source_list:")
+        for i in range(len(_source_list)):
+            _source_list[i] = (_source_list[i].split("/"))[-1]
+        print(_source_list)
 
-    if random_flag==1:
-        import lib.active_tools.chooseStrategy as CS
-        random_list = CS.random_sample(os.path.join(imdb.get_dataset_path(),"JPEGImages"))
-        l=[]
-        for item in random_list:
-            l.append(item.split('/')[-1])
-        imdb.add_datas_from_target(l, float(args_ratio), args_epoch_index, args_st_ratio)
+        # 如果是train数据，转移图像文件及标注文件
+        # print("开始移除源域数据....")
+        imdb.remove_datas_from_source(_source_list, float(args_ratio), args_st_ratio)
 
+        start = time.time()
+        all_boxes=detection_boxes.get_test_boxes(imdb, roidb, ratio_list, ratio_index,fasterRCNN)
 
+        #对目标域 train 检测不确定度
+        detection_for_all_images = imdb.get_detection_boxes_result(all_boxes)
+        end = time.time()
+        print("不确定度 time: %0.4fs" % (end - start))
+        uncertain_list = CS.uncertain_sample(detection_for_all_images, len(detection_for_all_images))
+
+        for i in range(len(uncertain_list)):
+            uncertain_list[i] = (uncertain_list[i].split("/"))[-1]
+            # 与target_list 权重1：1处理排序。
+            i = 0
+            sorted_dic = {}
+            for i in range(0,min(len(_target_list),len(uncertain_list))):
+                item_1 = _target_list[i]
+                item_2 = uncertain_list[i]
+                if not sorted_dic.__contains__(item_1):
+                    sorted_dic[item_1] = 0
+                if not sorted_dic.__contains__(item_2):
+                    sorted_dic[item_2] = 0
+
+                sorted_dic[item_1] += i
+                sorted_dic[item_2] += i
+
+            sorted_target_list_tuple = sorted(sorted_dic.items(), key=lambda d: d[1], reverse=False)
+
+            sorted_target_list = []
+            for item in sorted_target_list_tuple:
+                sorted_target_list.append(item[0])
+
+            _target_list=sorted_target_list
+            imdb.add_datas_from_target(_target_list, float(args_ratio), args_epoch_index, args_st_ratio)

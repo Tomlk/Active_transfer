@@ -249,20 +249,11 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--target_transfer", dest="target_transfer", help="target_transfer", default=1, type=int
+        "--select_strategy", dest="select_strategy",
+        help="select_strategy 0:random, 1:lc, 2:domainClassifier T, 3:domainClassifier T+LC, 4:domainClassifier T+S,5:domainClassifier T+S+LC",
+        default=0,
+        type=int
     )
-
-    parser.add_argument(
-        "--source_remove", dest="source_remove", help="source_remove", default=1, type=int
-    )
-
-    parser.add_argument(
-        "--lc_flag", dest="lc_flag", help="lc_flag", default=0, type=int
-    )
-    parser.add_argument(
-        "--random_flag",dest="random_flag",help="random_flag",default=0,type=int
-    )
-
     args = parser.parse_args()
     return args
 
@@ -631,9 +622,59 @@ if __name__ == "__main__":
 
         # count_iter = 0
 
-        target_list = None
-        source_list = None
-        if args.target_transfer == 1:
+
+        target_list = []
+        source_list = []
+        if args.select_strategy==0 or args.select_strategy==1:
+            #random or lc
+            execute_transfer_data(args.start_epoch,
+                                  float(1.0 / int(args.round_num)),
+                                  s_t_ratio,
+                                  args.dataset,
+                                  args.select_strategy)
+        elif args.select_strategy==2:
+            #域分类器 T
+            target_list = None
+            # 迁移
+            DC_target = Domain_classifier(fasterRCNN, dataset_t)
+            gt_boxes.data.resize_(1, 1, 5).zero_()
+            num_boxes.data.resize_(1).zero_()
+            DC_target.set_args(
+                num_boxes,
+                gt_boxes,
+                args.da_weight
+            )
+
+            target_list = DC_target.get_calculate_domain_list(True)
+            execute_transfer_data(args.start_epoch,
+                                  float(1.0 / int(args.round_num)),
+                                  s_t_ratio,
+                                  args.dataset,
+                                  args.select_strategy,
+                                  target_list)
+        elif args.select_strategy==3:
+            #域分类器 T+LC
+            target_list = None
+            # 迁移
+            DC_target = Domain_classifier(fasterRCNN, dataset_t)
+            gt_boxes.data.resize_(1, 1, 5).zero_()
+            num_boxes.data.resize_(1).zero_()
+            DC_target.set_args(
+                num_boxes,
+                gt_boxes,
+                args.da_weight
+            )
+
+            target_list = DC_target.get_calculate_domain_list(True)
+            execute_transfer_data(args.start_epoch,
+                                  float(1.0 / int(args.round_num)),
+                                  s_t_ratio,
+                                  args.dataset,
+                                  args.select_strategy,
+                                  target_list)
+        elif args.select_strategy==4 or args.select_strategy==5:
+            #域分类器 T+S  or 域分类器 T+S+LC
+            target_list = None
             # 迁移
             DC_target = Domain_classifier(fasterRCNN, dataset_t)
             gt_boxes.data.resize_(1, 1, 5).zero_()
@@ -646,7 +687,6 @@ if __name__ == "__main__":
 
             target_list = DC_target.get_calculate_domain_list(True)
 
-        if args.source_remove == 1:
             DC_source = Domain_classifier(fasterRCNN, dataset_s)
             gt_boxes.data.resize_(1, 1, 5).zero_()
             num_boxes.data.resize_(1).zero_()
@@ -658,10 +698,13 @@ if __name__ == "__main__":
 
             source_list = DC_source.get_calculate_domain_list(False)
 
-        # 迁移数据
-        execute_transfer_data(args.start_epoch, float(1.0 / int(args.round_num)), s_t_ratio, args.dataset,
-                              target_list, source_list, args.lc_flag,args.random_flag)
-
+            execute_transfer_data(args.start_epoch,
+                                  float(1.0 / int(args.round_num)),
+                                  s_t_ratio,
+                                  args.dataset,
+                                  args.select_strategy,
+                                  target_list,
+                                  source_list)
 
         s_imdb, s_roidb, s_ratio_list, s_ratio_index = combined_roidb(args.s_imdb_name)
         s_train_size = len(s_roidb)  # add flipped         image_index*2
@@ -880,7 +923,7 @@ if __name__ == "__main__":
         )
         print("save model: {}".format(save_name))
         # 测试
-        Detection_result = da_test_net.start_test(args.dataset, args.gpu_id)
+        Detection_result = da_test_net.start_test(args.dataset, args.gpu_id,round+1)
         if not Detection_result:
             print("some error!")
             break

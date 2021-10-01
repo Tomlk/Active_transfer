@@ -25,14 +25,10 @@ def prepare_roidb(imdb):
         sizes = [
             PIL.Image.open(imdb.image_path_at(i)).size for i in range(imdb.num_images)
         ]
-    print("len(imdb.image_index):",len(imdb.image_index))
+
     for i in range(len(imdb.image_index)):
         roidb[i]["img_id"] = imdb.image_id_at(i)
         roidb[i]["image"] = imdb.image_path_at(i)
-        # print(roidb[i]["img_id"])
-        # print(roidb[i]["image"])
-        # if i > 1/2*len(imdb.image_index):
-        #     input()
         if (
                 not (imdb.name.startswith("coco"))
                 or "car" in imdb.name
@@ -106,10 +102,10 @@ def combined_roidb(imdb_names, training=True):  # dataset name
 
     def get_training_roidb(imdb):
         """Returns a roidb (Region of Interest database) for use in training."""
-        # if cfg.TRAIN.USE_FLIPPED:
-        #     print("Appending horizontally-flipped training examples...")
-        #     imdb.append_flipped_images()  #  data augment
-        #     print("done")
+        if cfg.TRAIN.USE_FLIPPED:
+            print("Appending horizontally-flipped training examples...")
+            imdb.append_flipped_images()  #  data augment
+            print("done")
 
         print("Preparing training data...")
 
