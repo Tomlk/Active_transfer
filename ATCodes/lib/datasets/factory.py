@@ -66,7 +66,7 @@ for year in ["2007"]:
 
 
 for year in ["2007"]:
-    for split in ["trainval", "train","test"]:
+    for split in ["trainval", "test"]:
         name = "watercolor_{}".format(split)
         __sets[name] = lambda split=split: watercolor(split, year)
 

@@ -14,14 +14,14 @@ from roi_data_layer.minibatch import get_minibatch
 
 class roibatchLoader(data.Dataset):
     def __init__(
-            self,
-            roidb,
-            ratio_list,
-            ratio_index,
-            batch_size,
-            num_classes,
-            training=True,
-            normalize=None,
+        self,
+        roidb,
+        ratio_list,
+        ratio_index,
+        batch_size,
+        num_classes,
+        training=True,
+        normalize=None,
     ):
         self._roidb = roidb
         self._num_classes = num_classes
@@ -190,7 +190,7 @@ class roibatchLoader(data.Dataset):
 
             # check the bounding box:
             not_keep = (gt_boxes[:, 0] == gt_boxes[:, 2]) | (
-                    gt_boxes[:, 1] == gt_boxes[:, 3]
+                gt_boxes[:, 1] == gt_boxes[:, 3]
             )
             keep = torch.nonzero(not_keep == 0).view(-1)
 

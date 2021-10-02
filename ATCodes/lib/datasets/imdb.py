@@ -98,27 +98,18 @@ class imdb(object):
     def default_roidb(self):
         raise NotImplementedError
 
-    def evaluate_detections(self, all_boxes, output_dir=None, epoch_index=12):
+    def evaluate_detections(self, all_boxes, output_dir=None,epoch_index=12, types='test'):
         """
-    all_boxes is a list of length number-of-classes.
-    Each list element is a list of length number-of-images.
-    Each of those list elements is either an empty list []
-    or a numpy array of detection.
+        all_boxes is a list of length number-of-classes.
+        Each list element is a list of length number-of-images.
+        Each of those list elements is either an empty list []
+        or a numpy array of detection.
 
-    all_boxes[class][image] = [] or np.array of shape #dets x 5
-    """
+        all_boxes[class][image] = [] or np.array of shape #dets x 5
+        """
         raise NotImplementedError
 
-    def add_datas_from_target(self, l, ratio=0.1, epoch_index=12, st_ratio=1):
-        raise NotImplementedError
-
-    def remove_datas_from_source(self, l, ratio=0.1, st_ratio=1):
-        raise NotImplementedError
-
-    def get_mAP(self, all_boxes, round, epoch_index):
-        raise NotImplementedError
-
-    def get_detection_boxes_result(self,all_boxes):
+    def add_datas_from_target(self,l,ratio=0.1,epoch_index=12,st_ratio=1):
         raise NotImplementedError
 
     def get_dataset_path(self):
@@ -246,7 +237,7 @@ class imdb(object):
 
     def create_roidb_from_box_list(self, box_list, gt_roidb):
         assert (
-                len(box_list) == self.num_images
+            len(box_list) == self.num_images
         ), "Number of boxes must match number of ground-truth images"
         roidb = []
         for i in range(self.num_images):

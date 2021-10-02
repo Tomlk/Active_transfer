@@ -18,9 +18,9 @@ def prepare_roidb(imdb):
 
     roidb = imdb.roidb
     if (
-            not (imdb.name.startswith("coco"))
-            or "car" in imdb.name
-            or "sim10k" in imdb.name
+        not (imdb.name.startswith("coco"))
+        or "car" in imdb.name
+        or "sim10k" in imdb.name
     ):
         sizes = [
             PIL.Image.open(imdb.image_path_at(i)).size for i in range(imdb.num_images)

@@ -31,28 +31,21 @@ from model.utils.net_utils import (
     save_net,
     weights_normal_init,
 )
-from lib.roi_da_data_layer.roibatchLoader import roibatchLoader
-from lib.roi_da_data_layer.roidb import combined_roidb
+from roi_da_data_layer.roibatchLoader import roibatchLoader
+from roi_da_data_layer.roidb import combined_roidb
 from torch.autograd import Variable
 from torch.utils.data.sampler import Sampler
-
-print(sys.path)
-
-from lib.domain_tools.domain_classifier_util import Domain_classifier
-
 import da_test_net
-from transfer_data import execute_transfer_data
+
+import active_tools.chooseStrategy as CS
+from domain_tools.domain_classifier_util import Domain_classifier
 
 print(sys.path)
-
-'''
-相关参数设置
-'''
 
 
 def parse_args():
     """
-  Parse input arguments    
+  Parse input arguments
   """
     parser = argparse.ArgumentParser(description="Train a Fast R-CNN network")
     parser.add_argument(
@@ -248,6 +241,15 @@ def parse_args():
         "--st_ratio", dest="st_ratio", help="st_ratio", type=int
     )
 
+    '''
+    挑选策略：
+    0:random
+    1:lc
+    2:domainC-T
+    3:domainC-T + lc
+    4:domainC-T-S
+    5:domainC-T-S + lc
+    '''
     parser.add_argument(
         "--select_strategy", dest="select_strategy",
         help="select_strategy 0:random, 1:lc, 2:domainClassifier T, 3:domainClassifier T+LC, 4:domainClassifier T+S,5:domainClassifier T+S+LC",
@@ -256,11 +258,6 @@ def parse_args():
     )
     args = parser.parse_args()
     return args
-
-
-'''
-采样策略
-'''
 
 
 class sampler(Sampler):
@@ -292,6 +289,197 @@ class sampler(Sampler):
     def __len__(self):
         return self.num_data
 
+
+def data_loader_tools(args):
+    """
+    加载数据
+    Returns:
+    """
+    # 先加载数据测试
+    s_imdb, s_roidb, s_ratio_list, s_ratio_index = combined_roidb(args.s_imdb_name)
+    s_train_size = len(s_roidb)  # add flipped         image_index*2
+
+    t_imdb, t_roidb, t_ratio_list, t_ratio_index = combined_roidb(args.t_imdb_name)
+    t_train_size = len(t_roidb)  # add flipped         image_index*2
+
+    print("s_t_ratio:", s_t_ratio)
+
+    print("source {:d} target {:d} roidb entries".format(len(s_roidb), len(t_roidb)))
+
+    # output_dir = args.save_dir + "/" + args.net + "/" + args.dataset
+    output_dir = args.save_dir
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    s_sampler_batch = sampler(s_train_size, args.batch_size)
+    t_sampler_batch = sampler(t_train_size, args.batch_size)
+
+    dataset_s = roibatchLoader(
+        s_roidb,
+        s_ratio_list,
+        s_ratio_index,
+        args.batch_size,
+        s_imdb.num_classes,
+        training=True,
+    )
+
+    dataloader_s = torch.utils.data.DataLoader(
+        dataset_s,
+        batch_size=args.batch_size,
+        sampler=s_sampler_batch,
+        num_workers=args.num_workers,
+    )
+    dataset_t = roibatchLoader(
+        t_roidb,
+        t_ratio_list,
+        t_ratio_index,
+        args.batch_size,
+        t_imdb.num_classes,
+        training=True,
+    )
+    dataloader_t = torch.utils.data.DataLoader(
+        dataset_t,
+        batch_size=args.batch_size,
+        sampler=t_sampler_batch,
+        num_workers=args.num_workers,
+    )
+    # initilize the tensor holder here.
+    im_data = torch.FloatTensor(1)
+    im_info = torch.FloatTensor(1)
+    im_cls_lb = torch.FloatTensor(1)
+    num_boxes = torch.LongTensor(1)
+    gt_boxes = torch.FloatTensor(1)
+    # ship to cuda
+    if args.cuda:
+        im_data = im_data.cuda()
+        im_info = im_info.cuda()
+        im_cls_lb = im_cls_lb.cuda()
+        num_boxes = num_boxes.cuda()
+        gt_boxes = gt_boxes.cuda()
+
+    # make variable
+    im_data = Variable(im_data)
+    im_info = Variable(im_info)
+    im_cls_lb = Variable(im_cls_lb)
+    num_boxes = Variable(num_boxes)
+    gt_boxes = Variable(gt_boxes)
+    if args.cuda:
+        cfg.CUDA = True
+    return im_data, im_info, im_cls_lb, num_boxes, gt_boxes, dataloader_s, dataloader_t, s_imdb, s_roidb, s_ratio_list, s_ratio_index, output_dir, s_train_size, t_train_size, dataset_s, dataset_t
+
+
+def model_loader_tool(args, output_dir):
+    """
+    加载模型
+    Args:
+        args:
+    Returns:
+    """
+    if args.net == "vgg16":
+        fasterRCNN = vgg16(
+            s_imdb.classes,
+            pretrained_path=args.pretrained_path,
+            pretrained=True,
+            class_agnostic=args.class_agnostic,
+            lc=args.lc,
+            gc=args.gc,
+            da_use_contex=args.da_use_contex,
+        )
+
+    elif args.net == "res101":
+        fasterRCNN = resnet(
+            s_imdb.classes,
+            101,
+            pretrained_path=args.pretrained_path,
+            pretrained=True,
+            class_agnostic=args.class_agnostic,
+            lc=args.lc,
+            gc=args.gc,
+            da_use_contex=args.da_use_contex,
+        )
+
+    else:
+        print("network is not defined")
+        pdb.set_trace()
+
+    fasterRCNN.create_architecture()
+
+    lr = cfg.TRAIN.LEARNING_RATE
+    lr = args.lr
+
+    params = []
+    for key, value in dict(fasterRCNN.named_parameters()).items():
+        if value.requires_grad:
+            if "bias" in key:
+                params += [
+                    {
+                        "params": [value],
+                        "lr": lr * (cfg.TRAIN.DOUBLE_BIAS + 1),
+                        "weight_decay": cfg.TRAIN.BIAS_DECAY
+                                        and cfg.TRAIN.WEIGHT_DECAY
+                                        or 0,
+                    }
+                ]
+            else:
+                params += [
+                    {
+                        "params": [value],
+                        "lr": lr,
+                        "weight_decay": cfg.TRAIN.WEIGHT_DECAY,
+                    }
+                ]
+
+    if args.optimizer == "adam":
+        lr = lr * 0.1
+        optimizer = torch.optim.Adam(params)
+
+    elif args.optimizer == "sgd":
+        optimizer = torch.optim.SGD(params, momentum=cfg.TRAIN.MOMENTUM)
+
+    if args.cuda:
+        fasterRCNN.cuda()
+
+    # 加载模型
+    if args.resume:
+        print(output_dir)
+        models = os.listdir(output_dir)
+        modelfiles = models
+        for item in modelfiles:
+            if not item.endswith(".pth"):
+                modelfiles.remove(item)
+        modelfiles.sort()
+        modelfiles.sort(key=lambda i: len(i), reverse=False)
+
+        currentmodel = modelfiles[-1]
+        # item=currentmodel.split('.')[0]
+        # modelepoch=item.split('_')[-1]
+
+        args.resume_name = currentmodel
+        print(args.resume_name)
+        load_name = os.path.join(output_dir, args.resume_name)
+        print("loading checkpoint %s" % (load_name))
+        checkpoint = torch.load(load_name)
+        args.session = checkpoint["session"]
+        args.start_epoch = checkpoint["epoch"]
+        fasterRCNN.load_state_dict(checkpoint["model"])
+        optimizer.load_state_dict(checkpoint["optimizer"])
+        lr = optimizer.param_groups[0]["lr"]
+        if "pooling_mode" in checkpoint.keys():
+            cfg.POOLING_MODE = checkpoint["pooling_mode"]
+        print("loaded checkpoint %s" % (load_name))
+
+    # iters_per_epoch = int(10000 / args.batch_size)
+    # iters_per_epoch=min(int(s_train_size/(args.batch_size)), int(10000 / args.batch_size))
+    # iters_per_epoch=100
+    if args.ef:
+        FL = EFocalLoss(class_num=2, gamma=args.gamma)
+    else:
+        FL = FocalLoss(class_num=2, gamma=args.gamma)
+
+    # count_iter = 0
+    return fasterRCNN, FL, optimizer, lr
+
+
 if __name__ == "__main__":
 
     args = parse_args()
@@ -299,21 +487,10 @@ if __name__ == "__main__":
     print("Called with args:")
     print(args)
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu_id)  # 设置使用哪块gpu
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu_id)
 
-    if args.dataset == "pascal_voc":
-        print("loading our dataset...........")
-        args.imdb_name = "voc_2007_train"
-        args.imdbval_name = "voc_2007_test"
-        args.set_cfgs = [
-            "ANCHOR_SCALES",
-            "[4,8,16,32]",
-            "ANCHOR_RATIOS",
-            "[0.5,1,2]",
-            "MAX_NUM_GT_BOXES",
-            "50",
-        ]
-    elif args.dataset == "cityscapefoggy":
+    # 数据集定义
+    if args.dataset == "cityscapefoggy":
         print("loading our dataset...........")
         args.s_imdb_name = "cityscape_trainval"
         args.s_imdbtest_name = "cityscape_test"
@@ -327,22 +504,6 @@ if __name__ == "__main__":
             "MAX_NUM_GT_BOXES",
             "30",
         ]
-
-    elif args.dataset == "rpc":
-        print("loading our dataset...........")
-        args.s_imdb_name = "rpc_fake_train"
-        args.t_imdb_name = "rpc_val"
-        # args.s_imdbtest_name = "cityscape_2007_test_s"
-        args.t_imdbtest_name = "rpc_test"
-        args.set_cfgs = [
-            "ANCHOR_SCALES",
-            "[8,16,32]",
-            "ANCHOR_RATIOS",
-            "[0.5,1,2]",
-            "MAX_NUM_GT_BOXES",
-            "30",
-        ]
-
     elif args.dataset == "clipart":
         print("loading our dataset...........")
         args.s_imdb_name = "voc_2007_trainval+voc_2012_trainval"
@@ -371,61 +532,12 @@ if __name__ == "__main__":
             "20",
         ]
 
-    elif args.dataset == "bdddaytime8":
-        print("loading our dataset.........")
-        args.s_imdb_name = "cityscape_trainval"
-        args.s_imdbtest_name = "cityscape_test"
-        args.t_imdb_name = "bdddaytime8_trainval"
-        args.t_imdbtest_name = "bdddaytime8_test"
-        args.set_cfgs = [
-            "ANCHOR_SCALES",
-            "[8,16,32]",
-            "ANCHOR_RATIOS",
-            "[0.5,1,2]",
-            "MAX_NUM_GT_BOXES",
-            "30",
-        ]
-    elif args.dataset == "bddnight10":
-        print("loading our dataset.........")
-        args.s_imdb_name = "bdddaytime10_trainval"
-        args.s_imdbtest_name = "bdddaytime10_test"
-        args.t_imdb_name = "bddnight10_trainval"
-        args.t_imdbtest_name = "bddnight10_test"
-        args.set_cfgs = [
-            "ANCHOR_SCALES",
-            "[8,16,32]",
-            "ANCHOR_RATIOS",
-            "[0.5,1,2]",
-            "MAX_NUM_GT_BOXES",
-            "30",
-        ]
-
-
-    elif args.dataset == "pascal_voc_0712":
-        args.imdb_name = "voc_2007_trainval+voc_2012_trainval"
-        args.imdbval_name = "voc_2007_test"
-        args.set_cfgs = [
-            "ANCHOR_SCALES",
-            "[8, 16, 32]",
-            "ANCHOR_RATIOS",
-            "[0.5,1,2]",
-            "MAX_NUM_GT_BOXES",
-            "20",
-        ]
-    elif args.dataset == "sim10k":
-        print("loading our dataset...........")
-        args.s_imdb_name = "sim10k_2019_train"
-        args.t_imdb_name = "cityscapes_car_2019_train"
-        args.s_imdbtest_name = "sim10k_2019_val"
-        args.t_imdbtest_name = "cityscapes_car_2019_val"
-
-    # 设置参数文件
     args.cfg_file = (
         "cfgs/{}_ls.yml".format(args.net)
         if args.large_scale
         else "cfgs/{}.yml".format(args.net)
     )
-    # 合并网络参数
+
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)
     if args.set_cfgs is not None:
@@ -439,323 +551,72 @@ if __name__ == "__main__":
     if torch.cuda.is_available() and not args.cuda:
         print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
-    # train set
-    # -- Note: Use validation set and disable the flipped to enable faster loading.
-
-    # 每轮需要重新加载数据
-
     # s_t_ratio应该维持最开始的ratio
     s_t_ratio = args.st_ratio
-    cfg.USE_GPU_NMS = args.cuda
-    cfg.TRAIN.USE_FLIPPED = False  # 图像增强：复制
 
-    for round in range(args.round_num):  # 每次加10%的源数据
+    '''
+    每一轮
+    '''
+    # 循环开始
+    for i in range(args.round_num):  # 每次加5%的目标域数据
 
-        s_imdb, s_roidb, s_ratio_list, s_ratio_index = combined_roidb(args.s_imdb_name)
-        s_train_size = len(s_roidb)  # add flipped         image_index*2
+        cfg.TRAIN.USE_FLIPPED = False
+        cfg.USE_GPU_NMS = args.cuda
 
-        t_imdb, t_roidb, t_ratio_list, t_ratio_index = combined_roidb(args.t_imdb_name)
-        t_train_size = len(t_roidb)  # add flipped         image_index*2
+        # 1 加载数据
+        im_data, im_info, im_cls_lb, num_boxes, gt_boxes, dataloader_s, dataloader_t, s_imdb, s_roidb, s_ratio_list, s_ratio_index, output_dir, s_train_size, t_train_size, dataset_s, dataset_t = data_loader_tools(
+            args)
 
-        print("s_t_ratio:", s_t_ratio)
+        # 2 加载模型
+        fasterRCNN, FL, optimizer, lr = model_loader_tool(args, output_dir)
 
-        print("source {:d} target {:d} roidb entries".format(len(s_roidb), len(t_roidb)))
-
-        # output_dir = args.save_dir + "/" + args.net + "/" + args.dataset
-        output_dir = args.save_dir
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-
-        s_sampler_batch = sampler(s_train_size, args.batch_size)
-        t_sampler_batch = sampler(t_train_size, args.batch_size)
-
-        # 加载源域数据集
-        dataset_s = roibatchLoader(
-            s_roidb,
-            s_ratio_list,
-            s_ratio_index,
-            args.batch_size,
-            s_imdb.num_classes,
-            training=True,
-        )
-
-        dataloader_s = torch.utils.data.DataLoader(
-            dataset_s,
-            batch_size=args.batch_size,
-            sampler=s_sampler_batch,
-            num_workers=args.num_workers,
-        )
-        # 加载目标域数据集
-        dataset_t = roibatchLoader(
-            t_roidb,
-            t_ratio_list,
-            t_ratio_index,
-            args.batch_size,
-            t_imdb.num_classes,
-            training=True,
-        )
-        dataloader_t = torch.utils.data.DataLoader(
-            dataset_t,
-            batch_size=args.batch_size,
-            sampler=t_sampler_batch,
-            num_workers=args.num_workers,
-        )
-
-        # initilize the tensor holder here.
-        im_data = torch.FloatTensor(1)
-        im_info = torch.FloatTensor(1)
-        im_cls_lb = torch.FloatTensor(1)
-        num_boxes = torch.LongTensor(1)
-        gt_boxes = torch.FloatTensor(1)
-        # ship to cuda
-        if args.cuda:
-            im_data = im_data.cuda()
-            im_info = im_info.cuda()
-            im_cls_lb = im_cls_lb.cuda()
-            num_boxes = num_boxes.cuda()
-            gt_boxes = gt_boxes.cuda()
-
-        # make variable
-        im_data = Variable(im_data)
-        im_info = Variable(im_info)
-        im_cls_lb = Variable(im_cls_lb)
-        num_boxes = Variable(num_boxes)
-        gt_boxes = Variable(gt_boxes)
-        if args.cuda:
-            cfg.CUDA = True
-
-        # 主干网络选择
-        if args.net == "vgg16":
-            fasterRCNN = vgg16(
-                s_imdb.classes,
-                pretrained_path=args.pretrained_path,
-                pretrained=True,
-                class_agnostic=args.class_agnostic,
-                lc=args.lc,
-                gc=args.gc,
-                da_use_contex=args.da_use_contex,
-            )
-
-        elif args.net == "res101":
-            fasterRCNN = resnet(
-                s_imdb.classes,
-                101,
-                pretrained_path=args.pretrained_path,
-                pretrained=True,
-                class_agnostic=args.class_agnostic,
-                lc=args.lc,
-                gc=args.gc,
-                da_use_contex=args.da_use_contex,
-            )
-
-        else:
-            print("network is not defined")
-            pdb.set_trace()
-
-        fasterRCNN.create_architecture()
-
-        lr = cfg.TRAIN.LEARNING_RATE
-        lr = args.lr
-
-        params = []
-        for key, value in dict(fasterRCNN.named_parameters()).items():
-            if value.requires_grad:
-                if "bias" in key:
-                    params += [
-                        {
-                            "params": [value],
-                            "lr": lr * (cfg.TRAIN.DOUBLE_BIAS + 1),
-                            "weight_decay": cfg.TRAIN.BIAS_DECAY
-                                            and cfg.TRAIN.WEIGHT_DECAY
-                                            or 0,
-                        }
-                    ]
-                else:
-                    params += [
-                        {
-                            "params": [value],
-                            "lr": lr,
-                            "weight_decay": cfg.TRAIN.WEIGHT_DECAY,
-                        }
-                    ]
-
-        if args.optimizer == "adam":
-            lr = lr * 0.1
-            optimizer = torch.optim.Adam(params)
-
-        elif args.optimizer == "sgd":
-            optimizer = torch.optim.SGD(params, momentum=cfg.TRAIN.MOMENTUM)
-
-        if args.cuda:
-            fasterRCNN.cuda()
-
-        # 为从已有模型上继续训练
-        if args.resume:
-            print(output_dir)
-            models = os.listdir(output_dir)
-            modelfiles = models
-            for item in modelfiles:
-                if not item.endswith(".pth"):
-                    modelfiles.remove(item)
-            modelfiles.sort()
-            modelfiles.sort(key=lambda i: len(i), reverse=False)
-
-            currentmodel = modelfiles[-1]
-            args.resume_name = currentmodel
-            print(args.resume_name)
-            load_name = os.path.join(output_dir, args.resume_name)
-            print("loading checkpoint %s" % (load_name))
-            checkpoint = torch.load(load_name)
-            args.session = checkpoint["session"]
-            args.start_epoch = checkpoint["epoch"]
-            fasterRCNN.load_state_dict(checkpoint["model"])
-            optimizer.load_state_dict(checkpoint["optimizer"])
-            lr = optimizer.param_groups[0]["lr"]
-            if "pooling_mode" in checkpoint.keys():
-                cfg.POOLING_MODE = checkpoint["pooling_mode"]
-            print("loaded checkpoint %s" % (load_name))
-        print("当前epoch:",args.start_epoch )
-        if args.ef:
-            FL = EFocalLoss(class_num=2, gamma=args.gamma)
-        else:
-            FL = FocalLoss(class_num=2, gamma=args.gamma)
-
-        # count_iter = 0
-
-
-        target_list = []
-        source_list = []
-        if args.select_strategy==0 or args.select_strategy==1:
-            #random or lc
-            execute_transfer_data(args.start_epoch,
-                                  float(1.0 / int(args.round_num)),
-                                  s_t_ratio,
-                                  args.dataset,
-                                  args.select_strategy)
-        elif args.select_strategy==2:
-            #域分类器 T
-            target_list = None
-            # 迁移
-            DC_target = Domain_classifier(fasterRCNN, dataset_t)
-            gt_boxes.data.resize_(1, 1, 5).zero_()
-            num_boxes.data.resize_(1).zero_()
-            DC_target.set_args(
-                num_boxes,
-                gt_boxes,
-                args.da_weight
-            )
-
-            target_list = DC_target.get_calculate_domain_list(True)
-            execute_transfer_data(args.start_epoch,
-                                  float(1.0 / int(args.round_num)),
-                                  s_t_ratio,
-                                  args.dataset,
-                                  args.select_strategy,
-                                  target_list)
-        elif args.select_strategy==3:
-            #域分类器 T+LC
-            target_list = None
-            # 迁移
-            DC_target = Domain_classifier(fasterRCNN, dataset_t)
-            gt_boxes.data.resize_(1, 1, 5).zero_()
-            num_boxes.data.resize_(1).zero_()
-            DC_target.set_args(
-                num_boxes,
-                gt_boxes,
-                args.da_weight
-            )
-
-            target_list = DC_target.get_calculate_domain_list(True)
-            execute_transfer_data(args.start_epoch,
-                                  float(1.0 / int(args.round_num)),
-                                  s_t_ratio,
-                                  args.dataset,
-                                  args.select_strategy,
-                                  target_list)
-        elif args.select_strategy==4 or args.select_strategy==5:
-            #域分类器 T+S  or 域分类器 T+S+LC
-            target_list = None
-            # 迁移
-            DC_target = Domain_classifier(fasterRCNN, dataset_t)
-            gt_boxes.data.resize_(1, 1, 5).zero_()
-            num_boxes.data.resize_(1).zero_()
-            DC_target.set_args(
-                num_boxes,
-                gt_boxes,
-                args.da_weight
-            )
-
-            target_list = DC_target.get_calculate_domain_list(True)
-
+        # 3 检测 + 迁移
+        source_list=None
+        target_list=None
+        if args.select_strategy != 0 and args.select_strategy != 1:
+            # source
             DC_source = Domain_classifier(fasterRCNN, dataset_s)
             gt_boxes.data.resize_(1, 1, 5).zero_()
             num_boxes.data.resize_(1).zero_()
             DC_source.set_args(
                 num_boxes,
                 gt_boxes,
-                args.da_weight
+                da_weight=1.0,
             )
 
             source_list = DC_source.get_calculate_domain_list(False)
+            for i in range(len(source_list)):
+                source_list[i] = (source_list[i].split("/"))[-1]
+            # target
+            DC_target = Domain_classifier(fasterRCNN, dataset_t)
+            gt_boxes.data.resize_(1, 1, 5).zero_()
+            num_boxes.data.resize_(1).zero_()
+            DC_target.set_args(
+                num_boxes,
+                gt_boxes,
+                da_weight=1.0
+            )
+            target_list = DC_target.get_calculate_domain_list(True)
+            for i in range(len(target_list)):
+                target_list[i] = (target_list[i].split("/"))[-1]
 
-            execute_transfer_data(args.start_epoch,
-                                  float(1.0 / int(args.round_num)),
-                                  s_t_ratio,
-                                  args.dataset,
-                                  args.select_strategy,
-                                  target_list,
-                                  source_list)
+        Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), args.start_epoch, s_t_ratio,
+                                                  args.dataset, args.gpu_id, args.select_strategy, types='train',
+                                                  source_list=source_list, target_list=target_list)
+        print("\n Hello wolrd\n")
+        if not Detection_result:
+            print("some error!")
+            break
 
-        s_imdb, s_roidb, s_ratio_list, s_ratio_index = combined_roidb(args.s_imdb_name)
-        s_train_size = len(s_roidb)  # add flipped         image_index*2
+        # 4 重新加载
+        im_data, im_info, im_cls_lb, num_boxes, gt_boxes, dataloader_s, dataloader_t, s_imdb, s_roidb, s_ratio_list, s_ratio_index, output_dir, s_train_size, t_train_size, dataset_s, dataset_t = data_loader_tools(args)
 
-        t_imdb, t_roidb, t_ratio_list, t_ratio_index = combined_roidb(args.t_imdb_name)
-        t_train_size = len(t_roidb)  # add flipped         image_index*2
+        # 5 训练
+        if args.resume:
+            args.max_epochs = args.start_epoch + 1
+        iters_per_epoch = max(int(s_train_size / (args.batch_size)), int(t_train_size / args.batch_size))
 
-        s_sampler_batch = sampler(s_train_size, args.batch_size)
-        t_sampler_batch = sampler(t_train_size, args.batch_size)
-
-        # 加载源域数据集
-        dataset_s = roibatchLoader(
-            s_roidb,
-            s_ratio_list,
-            s_ratio_index,
-            args.batch_size,
-            s_imdb.num_classes,
-            training=True,
-        )
-
-        dataloader_s = torch.utils.data.DataLoader(
-            dataset_s,
-            batch_size=args.batch_size,
-            sampler=s_sampler_batch,
-            num_workers=args.num_workers,
-        )
-        # 加载目标域数据集
-        dataset_t = roibatchLoader(
-            t_roidb,
-            t_ratio_list,
-            t_ratio_index,
-            args.batch_size,
-            t_imdb.num_classes,
-            training=True,
-        )
-        dataloader_t = torch.utils.data.DataLoader(
-            dataset_t,
-            batch_size=args.batch_size,
-            sampler=t_sampler_batch,
-            num_workers=args.num_workers,
-        )
-
-        iters_per_epoch = int(s_train_size / (args.batch_size))
-        print("iters_per_epoch:", iters_per_epoch)
-
-        # if args.resume == True:
-        #     args.max_epochs = args.start_epoch + 5
-
-        max_epoch=1
-
-        for epoch in range(max_epoch):
+        for epoch in range(args.start_epoch, args.max_epochs + 1):
             # setting to train mode
             fasterRCNN.train()
             loss_temp = 0
@@ -766,22 +627,20 @@ if __name__ == "__main__":
 
             data_iter_s = iter(dataloader_s)
             data_iter_t = iter(dataloader_t)
-
             for step in range(iters_per_epoch):
                 try:
-                    data_s = next(data_iter_s)  # 还有剩余的源域数据
+                    data_s = next(data_iter_s)
                 except:
-                    data_iter_s = iter(dataloader_s)  # 从头开始获得迭代器
-                    data_s = next(data_iter_s)  # 获得一批数据
+                    data_iter_s = iter(dataloader_s)
+                    data_s = next(data_iter_s)
                 try:
-                    data_t = next(data_iter_t)  # 还有剩余的目标域数据
+                    data_t = next(data_iter_t)
                 except:
-                    data_iter_t = iter(dataloader_t)  # 从头开始获得迭代器
-                    data_t = next(data_iter_t)  # 获得一批数据
+                    data_iter_t = iter(dataloader_t)
+                    data_t = next(data_iter_t)
                 # eta = 1.0
                 # count_iter += 1
                 # put source data into variable
-
                 im_data.data.resize_(data_s[0].size()).copy_(data_s[0])
                 im_info.data.resize_(data_s[1].size()).copy_(data_s[1])
                 im_cls_lb.data.resize_(data_s[2].size()).copy_(data_s[2])
@@ -810,7 +669,6 @@ if __name__ == "__main__":
                     num_boxes,
                     weight_value=args.da_weight,
                 )
-                # 当前能计算的损失
                 loss = (
                         category_loss_cls.mean()
                         + rpn_loss_cls.mean()
@@ -822,9 +680,9 @@ if __name__ == "__main__":
 
                 # domain label
                 domain_s = Variable(torch.zeros(out_d.size(0)).long().cuda())
-                # global alignment loss  源域全局域对齐损失
+                # global alignment loss
                 dloss_s = 0.5 * FL(out_d, domain_s)
-                # local alignment loss 源域局部域对齐损失
+                # local alignment loss
                 dloss_s_p = 0.5 * torch.mean(out_d_pixel ** 2)
 
                 # put target data into variable
@@ -833,7 +691,7 @@ if __name__ == "__main__":
                 # gt is empty
                 gt_boxes.data.resize_(1, 1, 5).zero_()
                 num_boxes.data.resize_(1).zero_()
-                out_d_pixel, out_d, target_ins_da = fasterRCNN(  # 目标域获得
+                out_d_pixel, out_d, target_ins_da = fasterRCNN(
                     im_data,
                     im_info,
                     im_cls_lb,
@@ -844,9 +702,9 @@ if __name__ == "__main__":
                 )
                 # domain label
                 domain_t = Variable(torch.ones(out_d.size(0)).long().cuda())
-                dloss_t = 0.5 * FL(out_d, domain_t)  # 目标域全局域对齐损失
+                dloss_t = 0.5 * FL(out_d, domain_t)
                 # local alignment loss
-                dloss_t_p = 0.5 * torch.mean((1 - out_d_pixel) ** 2)  # 目标域局部域对齐损失
+                dloss_t_p = 0.5 * torch.mean((1 - out_d_pixel) ** 2)
                 if args.dataset == "sim10k":
                     loss += (dloss_s + dloss_t + dloss_s_p + dloss_t_p) * args.eta
                 else:
@@ -878,7 +736,7 @@ if __name__ == "__main__":
                     fg_cnt = torch.sum(rois_label.data.ne(0))
                     bg_cnt = rois_label.data.numel() - fg_cnt
 
-                    print("round: {}".format(round + 1))
+                    print("round: {}".format(i + 1))
                     print(
                         "[session %d][epoch %2d][iter %4d/%4d] loss: %.4f, lr: %.2e"
                         % (args.session, epoch, step, iters_per_epoch, loss_temp, lr)
@@ -906,28 +764,34 @@ if __name__ == "__main__":
 
                     loss_temp = 0
                     start = time.time()
+            if epoch % args.checkpoint_interval == 0 or epoch == args.max_epochs:
+                save_name = os.path.join(
+                    output_dir, "{}.pth".format(args.dataset + "_" + str(epoch)),
+                )
+                save_checkpoint(
+                    {
+                        "session": args.session,
+                        "epoch": epoch + 1,
+                        "model": fasterRCNN.state_dict(),
+                        "optimizer": optimizer.state_dict(),
+                        "pooling_mode": cfg.POOLING_MODE,
+                        "class_agnostic": args.class_agnostic,
+                    },
+                    save_name,
+                )
+                print("save model: {}".format(save_name))
 
-            #mAP = test_mAP.get_mAP(args.dataset, i + 1, epoch)
-        #覆盖
-        save_name = os.path.join(output_dir, "{}.pth".format(args.dataset + "_" + str(args.start_epoch + 1)),)
-        save_checkpoint(
-            {
-                "session": args.session,
-                "epoch": args.start_epoch + 1,
-                "model": fasterRCNN.state_dict(),
-                "optimizer": optimizer.state_dict(),
-                "pooling_mode": cfg.POOLING_MODE,
-                "class_agnostic": args.class_agnostic,
-            },
-            save_name,
-        )
-        print("save model: {}".format(save_name))
-        # 测试
-        Detection_result = da_test_net.start_test(args.dataset, args.gpu_id,round+1)
-        if not Detection_result:
-            print("some error!")
-            break
-
-    print("\n Hello wolrd\n")
+                # print("\n Hello wolrd\n")
+                # if not Detection_result:
+                #     print("some error!")
+                #     break
+                # 测试当前模型 并进行数据迁移
+                #
+                # import da_test_net
+                #
+                # Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), epoch, s_t_ratio,
+                #                                           args.dataset, args.gpu_id)
+            Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), args.start_epoch, s_t_ratio,
+                                                      args.dataset, args.gpu_id, args.select_strategy, types='test')
 
     # getlist=CS.uncertain_sample()

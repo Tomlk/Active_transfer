@@ -13,7 +13,7 @@ import scipy.sparse
 
 # TODO: make fast_rcnn irrelevant
 # >>>> obsolete, because it depends on sth outside of this project
-from lib.model.utils.config import cfg
+from model.utils.config import cfg
 
 from . import ds_utils
 from .config_dataset import cfg_d

@@ -20,10 +20,6 @@ from .config_dataset import cfg_d
 from .imdb import ROOT_DIR, imdb
 from .voc_eval import voc_eval
 
-
-import renewImageSetstool.renew_txt as RNtool
-import datetime
-
 # --------------------------------------------------------
 # Fast R-CNN
 # Copyright (c) 2015 Microsoft
@@ -378,7 +374,6 @@ class clipart(imdb):
         
 
         filename=os.path.join(self._devkit_path,"results","detection.txt")
-        self.detection_result=[]
 
         with open(filename,"w") as f:
             s=""
@@ -514,12 +509,12 @@ class clipart(imdb):
         print("Running:\n{}".format(cmd))
         status = subprocess.call(cmd, shell=True)
 
-    def evaluate_detections(self, all_boxes, output_dir,epoch_index,t_train_flag):
-        self._write_to_listfile(all_boxes)
-        if t_train_flag:
-            return self.detection_result
+    def evaluate_detections(self, all_boxes, output_dir,epoch_index, types='test'):
         self._write_voc_results_file(all_boxes)
-        self._do_python_eval(output_dir,epoch_index)
+        self._write_to_listfile(all_boxes)
+        if types == 'test':
+            self._do_python_eval(output_dir,epoch_index)    # 计算 map
+            return None
         if self.config["matlab_eval"]:
             self._do_matlab_eval(output_dir)
         if self.config["cleanup"]:
@@ -542,16 +537,8 @@ class clipart(imdb):
 
         m_n2c={}
         m_n2c[0]=""
-        t=1
-        j=1
-        while t <= int(st_ratio):
-            for i in range(1,27):
-                temp=""
-                for k in range(0,j):
-                    temp+=chr(96+i)
-                m_n2c[t]=temp
-                t+=1
-            j+=1
+        for i in range(1,26):
+            m_n2c[i]=chr(96+i)
 
         num=0
         for item in l:
@@ -576,41 +563,9 @@ class clipart(imdb):
         with open(os.path.join(self._devkit_path,"transfer_data_record.txt"),'a') as f:
             f.write("epoch {} finished ,then  transfered {} imgs and xmls \n".format(epoch_index,num*st_ratio))
 
-        #更新源域txt
+        #更新源域txt 
+        import renewImageSetstool.renew_txt as RNtool
         RNtool.gettxt(self._source_data_path,1)
-
-
-    def remove_datas_from_source(self,l,ratio,st_ratio):
-        #删掉相应图片
-
-        img_dir_path=os.path.join(self._source_data_path,"JPEGImages")
-        xml_dir_path=os.path.join(self._source_data_path,"Annotations")
-
-        l1=[]
-        select_num=int(0.2*st_ratio*ratio*len(self.image_index))
-        length=len(l)
-
-        if length > select_num:
-            length=select_num
-
-        select_l=l[0:length]
-
-        for item in select_l:
-            img_file=os.path.join(img_dir_path,item)
-            xml_file=os.path.join(xml_dir_path,item.split('.')[0]+".xml")
-            if os.path.exists(img_file):
-                os.remove(img_file)
-            if os.path.exists(xml_file):
-                os.remove(xml_file)
-
-        now_time= datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') #获取时间
-        #写入记录
-        with open(os.path.join(self._devkit_path,"transfer_data_record.txt"),'a') as f:
-            f.write("time: {},remove {} imgs from source train.\n".format(now_time,length))
-        #更新源域txt
-        RNtool.gettxt(self._source_data_path,1)
-
-
 
 
     def competition_mode(self, on):
@@ -622,9 +577,9 @@ class clipart(imdb):
             self.config["cleanup"] = True
 
 
-# if __name__ == "__main__":
-#     d = pascal_voc("trainval", "2007")
-#     res = d.roidb
-#     from IPython import embed
-#
-#     embed()
+if __name__ == "__main__":
+    d = pascal_voc("trainval", "2007")
+    res = d.roidb
+    from IPython import embed
+
+    embed()

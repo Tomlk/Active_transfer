@@ -20,10 +20,6 @@ from .config_dataset import cfg_d
 from .imdb import ROOT_DIR, imdb
 from .voc_eval import voc_eval
 
-#更新源域txt
-import renewImageSetstool.renew_txt as RNtool
-import datetime
-
 # --------------------------------------------------------
 # Fast R-CNN
 # Copyright (c) 2015 Microsoft
@@ -384,8 +380,6 @@ class watercolor(imdb):
 
         filename=os.path.join(self._devkit_path,"results","detection.txt")
 
-        self.detection_result=[]
-
         with open(filename,"w") as f:
             s=""
             for imagekey in d.keys():
@@ -520,53 +514,12 @@ class watercolor(imdb):
         print("Running:\n{}".format(cmd))
         status = subprocess.call(cmd, shell=True)
 
-
-    def do_get_mAP(self):
-        annopath = os.path.join(
-            self._devkit_path, "Annotations", "{:s}.xml"
-        )
-        imagesetfile = os.path.join(
-            self._devkit_path,
-            "ImageSets",
-            "Main",
-            self._image_set + ".txt",
-            )
-        cachedir = os.path.join(self._devkit_path, "annotations_cache")
-        aps = []
-        # The PASCAL VOC metric changed in 2010
-        use_07_metric = True if int(self._year) < 2010 else False
-        print("VOC07 metric? " + ("Yes" if use_07_metric else "No"))
-        for i, cls in enumerate(self._classes):
-            if cls == "__background__":
-                continue
-            filename = self._get_voc_results_file_template().format(cls)
-            rec, prec, ap = voc_eval(
-                filename,
-                annopath,
-                imagesetfile,
-                cls,
-                cachedir,
-                ovthresh=0.5,
-                use_07_metric=use_07_metric,
-            )
-            aps += [ap]
-            print("AP for {} = {:.4f}".format(cls, ap))
-        # print("Mean AP = {:.4f}".format(np.mean(aps)))
-        return np.mean(aps)
-
-    def get_mAP(self, all_boxes, round, epoch_index):
+    def evaluate_detections(self, all_boxes, output_dir,epoch_index, types='test'):
         self._write_voc_results_file(all_boxes)
-        mAP = self.do_get_mAP()
-        with open(os.path.join(self._devkit_path, "map_record.txt"), "a") as f:
-            f.write("轮数{}: epoch:{},mAP:{}.\n".format(round, epoch_index,mAP))
-        return mAP
-
-    def evaluate_detections(self, all_boxes, output_dir,epoch_index,t_train_flag):
         self._write_to_listfile(all_boxes)
-        if t_train_flag:
-            return self.detection_result
-        self._write_voc_results_file(all_boxes)
-        self._do_python_eval(output_dir,epoch_index)
+        if types == 'test':
+            self._do_python_eval(output_dir,epoch_index)    # 计算 map
+            return None
         if self.config["matlab_eval"]:
             self._do_matlab_eval(output_dir)
         if self.config["cleanup"]:
@@ -611,45 +564,13 @@ class watercolor(imdb):
                 
         print("transfer finished!,transfered {} target data".format(num*st_ratio))
 
-        now_time= datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') #获取时间
         #写入记录
         with open(os.path.join(self._devkit_path,"transfer_data_record.txt"),'a') as f:
-            f.write("time: {}, epoch {} finished ,then  transfered {} imgs and xmls \n".format(now_time,epoch_index,select_num))
+            f.write("epoch {} finished ,then  transfered {} imgs and xmls \n".format(epoch_index,num*st_ratio))
 
-
+        #更新源域txt 
+        import renewImageSetstool.renew_txt as RNtool
         RNtool.gettxt(self._source_data_path,1)
-
-
-    def remove_datas_from_source(self,l,ratio,st_ratio):
-        #删掉相应图片
-
-        img_dir_path=os.path.join(self._source_data_path,"JPEGImages")
-        xml_dir_path=os.path.join(self._source_data_path,"Annotations")
-
-        l1=[]
-        select_num=int(0.2*st_ratio*ratio*len(self.image_index))
-        length=len(l)
-
-        if length > select_num:
-            length=select_num
-
-        select_l=l[0:length]
-
-        for item in select_l:
-            img_file=os.path.join(img_dir_path,item)
-            xml_file=os.path.join(xml_dir_path,item.split('.')[0]+".xml")
-            if os.path.exists(img_file):
-                os.remove(img_file)
-            if os.path.exists(xml_file):
-                os.remove(xml_file)
-
-        now_time= datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') #获取时间
-        #写入记录
-        with open(os.path.join(self._devkit_path,"transfer_data_record.txt"),'a') as f:
-            f.write("time: {},remove {} imgs from source train.\n".format(now_time,length))
-        #更新源域txt
-        RNtool.gettxt(self._source_data_path,1)
-
 
     def competition_mode(self, on):
         if on:

@@ -329,7 +329,7 @@ if __name__ == "__main__":
         print("loading our dataset...........")
         args.s_imdb_name = "voc_2007_trainval+voc_2012_trainval"
         args.t_imdb_name = "clipart_trainval"
-        args.t_imdbtest_name = "clipart_trainval"
+        args.t_imdbtest_name = "clipart_test"
         args.set_cfgs = [
             "ANCHOR_SCALES",
             "[8,16,32]",
@@ -432,23 +432,22 @@ if __name__ == "__main__":
 
     for i in range(args.round_num):  #每次加10%的源数据
         
-        # #每轮开始先测
-        # import da_test_net2
-        # Detection_result=da_test_net2.start_test(float(1.0/int(args.round_num)),s_t_ratio,args.dataset,args.gpu_id)
-              #每轮开始先测
+
+        #先测map
+
+        #每轮开始先测
         from shutil import copyfile
         
-
-        print("test map:")
          #先测map
         import da_test_net2
         copyfile(os.path.join("./data/datasets",args.dataset,"ImageSets/Main","test_real.txt"),os.path.join("./data/datasets",args.dataset,"ImageSets/Main","test.txt"))
         Detection_result=da_test_net2.start_test(float(1.0/int(args.round_num)),s_t_ratio,args.dataset,args.gpu_id,True)
 
         #再迁移
-        print("test and transfer  data")
         copyfile(os.path.join("./data/datasets",args.dataset,"ImageSets/Main","test_trainval.txt"),os.path.join("./data/datasets",args.dataset,"ImageSets/Main","test.txt"))
         Detection_result=da_test_net2.start_test(float(1.0/int(args.round_num)),s_t_ratio,args.dataset,args.gpu_id,False)
+
+
 
         cfg.TRAIN.USE_FLIPPED = False
         cfg.USE_GPU_NMS = args.cuda

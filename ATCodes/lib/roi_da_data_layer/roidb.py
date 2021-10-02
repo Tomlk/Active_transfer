@@ -18,9 +18,9 @@ def prepare_roidb(imdb):
 
     roidb = imdb.roidb
     if (
-            not (imdb.name.startswith("coco"))
-            or "car" in imdb.name
-            or "sim10k" in imdb.name
+        not (imdb.name.startswith("coco"))
+        or "car" in imdb.name
+        or "sim10k" in imdb.name
     ):
         sizes = [
             PIL.Image.open(imdb.image_path_at(i)).size for i in range(imdb.num_images)
@@ -30,9 +30,9 @@ def prepare_roidb(imdb):
         roidb[i]["img_id"] = imdb.image_id_at(i)
         roidb[i]["image"] = imdb.image_path_at(i)
         if (
-                not (imdb.name.startswith("coco"))
-                or "car" in imdb.name
-                or "sim10k" in imdb.name
+            not (imdb.name.startswith("coco"))
+            or "car" in imdb.name
+            or "sim10k" in imdb.name
         ):
             roidb[i]["width"] = sizes[i][0]
             roidb[i]["height"] = sizes[i][1]
@@ -137,8 +137,8 @@ def combined_roidb(imdb_names, training=True):  # dataset name
         tmp = get_imdb(imdb_names.split("+")[1])
         imdb = datasets.imdb.imdb(imdb_names, tmp.classes)
         imdb._image_index = (
-                get_imdb(imdb_names.split("+")[1]).image_index
-                + get_imdb(imdb_names.split("+")[0]).image_index
+            get_imdb(imdb_names.split("+")[1]).image_index
+            + get_imdb(imdb_names.split("+")[0]).image_index
         )
     else:
         imdb = get_imdb(imdb_names)

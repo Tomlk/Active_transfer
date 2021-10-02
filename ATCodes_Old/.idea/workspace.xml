@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="672c23e7-14af-402e-828f-cff91e7a2cdf" name="Changes" comment="10.2版本修改，测试完成">
+      <change beforePath="$PROJECT_DIR$/../ATCodes/da_test_net.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/da_test_net.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/da_train_net.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/da_train_net.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/da_train_net2.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/da_train_net2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/da_train_swicrccr.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/da_train_swicrccr.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/eval/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/eval/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/eval/test_SW_ICR_CCR.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/eval/test_SW_ICR_CCR.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/eval/test_mAP.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/build/lib.linux-x86_64-3.6/roi_da_data_layer/roidb.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/build/lib.linux-x86_64-3.6/roi_da_data_layer/roidb.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/build/lib.linux-x86_64-3.6/roi_data_layer/roidb.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/build/lib.linux-x86_64-3.6/roi_data_layer/roidb.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/datasets/cityscape.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/datasets/cityscape.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/datasets/cityscapefoggy.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/datasets/cityscapefoggy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/datasets/clipart.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/datasets/clipart.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/datasets/factory.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/datasets/factory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/datasets/imdb.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/datasets/imdb.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/datasets/watercolor.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/datasets/watercolor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/detection_boxes_tools/detection_boxes.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/domain_tools/transfer_util.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/model/utils/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/model/utils/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/model/utils/net_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/model/utils/net_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/roi_da_data_layer/minibatch.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/roi_da_data_layer/minibatch.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/roi_da_data_layer/roibatchLoader.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/roi_da_data_layer/roibatchLoader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/roi_da_data_layer/roidb.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/roi_da_data_layer/roidb.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/roi_data_layer/minibatch.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/roi_data_layer/minibatch.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/roi_data_layer/roibatchLoader.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/roi_data_layer/roibatchLoader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lib/roi_data_layer/roidb.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/lib/roi_data_layer/roidb.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/lkda.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/predict_all_boxes.pkl" beforeDir="false" afterPath="$PROJECT_DIR$/../ATCodes/predict_all_boxes.pkl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/test_map.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/tools/delete.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ATCodes/transfer_data.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ATCodes_Old.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes.zip" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/_init_paths.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/cfgs/res101.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/cfgs/res101_ls.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/cfgs/res50.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/cfgs/vgg16.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/da_test_net.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/da_test_net2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/da_train_net.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/da_train_net2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/da_train_swicrccr.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/eval/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/eval/_init_paths.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/eval/test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/eval/test_SW_ICR_CCR.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/eval/test_strong_weak.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/active_tools/chooseStrategy.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/active_tools/filetools_copy.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/boxes.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/cityscape.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/cityscapes_car.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/clipart.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/coco.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/config_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/convert_cityscapes_to_caronly_coco.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/convert_cityscapes_to_unlabeled_caronly_coco.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/convert_sim10k_to_coco.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/ds_utils.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/factory.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/imagenet.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/imdb.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/pascal_voc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/pascal_voc_rbg.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/pascal_voc_water.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/rpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/rpc_fake.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/segms.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/sim10k_coco.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/vg.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/vg_eval.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/voc_eval.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/voc_eval_no_add_1.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/datasets/water.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/_C.cpython-36m-x86_64-linux-gnu.so" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/faster_rcnn/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/faster_rcnn/faster_rcnn.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/faster_rcnn/resnet.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/faster_rcnn/vgg16.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/nms/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/nms/_ext/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/nms/_ext/nms/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/nms/build.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/nms/nms_cpu.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/nms/nms_gpu.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/nms/nms_wrapper.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_align/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_align/_ext/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_align/_ext/roi_align/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_align/build.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_align/functions/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_align/functions/roi_align.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_align/modules/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_align/modules/roi_align.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_crop/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_crop/_ext/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_crop/_ext/crop_resize/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_crop/_ext/roi_crop/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_crop/build.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_crop/functions/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_crop/functions/crop_resize.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_crop/functions/gridgen.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_crop/functions/roi_crop.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_crop/modules/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_crop/modules/gridgen.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_crop/modules/roi_crop.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_layers/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_layers/nms.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_layers/roi_align.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_layers/roi_pool.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_pooling/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_pooling/_ext/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_pooling/_ext/roi_pooling/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_pooling/build.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_pooling/functions/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_pooling/functions/roi_pool.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_pooling/modules/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/roi_pooling/modules/roi_pool.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/rpn/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/rpn/anchor_target_layer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/rpn/bbox_transform.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/rpn/generate_anchors.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/rpn/proposal_layer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/rpn/proposal_target_layer_cascade.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/rpn/rpn.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/utils/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/utils/blob.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/utils/config.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/utils/logger.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/model/utils/net_utils.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/roi_da_data_layer/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/roi_da_data_layer/minibatch.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/roi_da_data_layer/roibatchLoader.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/roi_da_data_layer/roidb.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/roi_data_layer/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/roi_data_layer/minibatch.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/roi_data_layer/roibatchLoader.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/lib.linux-x86_64-3.6/roi_data_layer/roidb.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/temp.linux-x86_64-3.6/home/longk/CR-DA-DET-master/SW_Faster_ICR_CCR/lib/model/csrc/cpu/ROIAlign_cpu.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/temp.linux-x86_64-3.6/home/longk/CR-DA-DET-master/SW_Faster_ICR_CCR/lib/model/csrc/cpu/nms_cpu.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/temp.linux-x86_64-3.6/home/longk/CR-DA-DET-master/SW_Faster_ICR_CCR/lib/model/csrc/cuda/ROIAlign_cuda.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/temp.linux-x86_64-3.6/home/longk/CR-DA-DET-master/SW_Faster_ICR_CCR/lib/model/csrc/cuda/ROIPool_cuda.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/temp.linux-x86_64-3.6/home/longk/CR-DA-DET-master/SW_Faster_ICR_CCR/lib/model/csrc/cuda/nms.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/build/temp.linux-x86_64-3.6/home/longk/CR-DA-DET-master/SW_Faster_ICR_CCR/lib/model/csrc/vision.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets.tar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/.cityscape.py.swp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/VOCdevkit-matlab-wrapper/get_voc_opts.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/VOCdevkit-matlab-wrapper/voc_eval.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/VOCdevkit-matlab-wrapper/xVOCap.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/bdddaytime10.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/bdddaytime8.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/bddnight10.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/boxes.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/cityscape.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/cityscapefoggy.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/cityscapes_car.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/clipart.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/coco.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/config_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/convert_cityscapes_to_caronly_coco.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/convert_cityscapes_to_unlabeled_caronly_coco.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/convert_sim10k_to_coco.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/ds_utils.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/factory.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/imagenet.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/imdb.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/pascal_voc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/pascal_voc_rbg.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/pascal_voc_water.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/rpc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/rpc_fake.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/segms.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/sim10k_coco.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/vg.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/vg_eval.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/voc_eval.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/voc_eval_no_add_1.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/datasets/watercolor.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/enhancedata_tools/enhancedata.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/faster_rcnn.egg-info/PKG-INFO" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/faster_rcnn.egg-info/SOURCES.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/faster_rcnn.egg-info/dependency_links.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/faster_rcnn.egg-info/top_level.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/_C.cpython-36m-x86_64-linux-gnu.so" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/csrc/ROIAlign.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/csrc/ROIPool.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/csrc/cpu/ROIAlign_cpu.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/csrc/cpu/nms_cpu.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/csrc/cpu/vision.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/csrc/cuda/ROIAlign_cuda.cu" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/csrc/cuda/ROIPool_cuda.cu" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/csrc/cuda/nms.cu" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/csrc/cuda/vision.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/csrc/nms.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/csrc/vision.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/da_faster_rcnn/DA.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/da_faster_rcnn/LabelResizeLayer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/da_faster_rcnn/faster_rcnn.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/da_faster_rcnn/faster_rcnn_multi_label.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/da_faster_rcnn/resnet.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/da_faster_rcnn/resnet_multi_label.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/da_faster_rcnn/vgg16.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/da_faster_rcnn_instance_da_weight/DA.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/da_faster_rcnn_instance_da_weight/LabelResizeLayer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/da_faster_rcnn_instance_da_weight/faster_rcnn.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/da_faster_rcnn_instance_da_weight/resnet.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/da_faster_rcnn_instance_da_weight/vgg16.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/faster_rcnn/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/faster_rcnn/faster_rcnn.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/faster_rcnn/resnet.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/faster_rcnn/vgg16.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/nms/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/nms/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/nms/_ext/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/nms/_ext/nms/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/nms/build.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/nms/make.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/nms/nms_cpu.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/nms/nms_gpu.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/nms/nms_kernel.cu" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/nms/nms_wrapper.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/nms/src/nms_cuda.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/nms/src/nms_cuda_kernel.cu" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/nms/src/nms_cuda_kernel.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/_ext/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/_ext/roi_align/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/build.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/functions/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/functions/roi_align.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/make.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/modules/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/modules/roi_align.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/src/roi_align.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/src/roi_align.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/src/roi_align_cuda.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/src/roi_align_cuda.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/src/roi_align_kernel.cu" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_align/src/roi_align_kernel.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/_ext/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/_ext/crop_resize/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/_ext/roi_crop/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/build.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/functions/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/functions/crop_resize.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/functions/gridgen.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/functions/roi_crop.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/make.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/modules/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/modules/gridgen.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/modules/roi_crop.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/src/roi_crop.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/src/roi_crop.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/src/roi_crop_cuda.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/src/roi_crop_cuda.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/src/roi_crop_cuda_kernel.cu" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_crop/src/roi_crop_cuda_kernel.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_layers/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_layers/nms.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_layers/roi_align.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_layers/roi_pool.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_pooling/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_pooling/_ext/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_pooling/_ext/roi_pooling/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_pooling/build.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_pooling/functions/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_pooling/functions/roi_pool.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_pooling/modules/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_pooling/modules/roi_pool.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_pooling/src/roi_pooling.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_pooling/src/roi_pooling.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_pooling/src/roi_pooling_cuda.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_pooling/src/roi_pooling_cuda.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_pooling/src/roi_pooling_kernel.cu" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/roi_pooling/src/roi_pooling_kernel.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/rpn/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/rpn/anchor_target_layer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/rpn/bbox_transform.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/rpn/generate_anchors.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/rpn/proposal_layer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/rpn/proposal_target_layer_cascade.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/rpn/rpn.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/utils/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/utils/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/utils/bbox.pyx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/utils/blob.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/utils/config.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/utils/logger.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/model/utils/net_utils.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/renewImageSetstool/renew_txt.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/roi_da_data_layer/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/roi_da_data_layer/minibatch.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/roi_da_data_layer/roibatchLoader.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/roi_da_data_layer/roidb.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/roi_data_layer/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/roi_data_layer/minibatch.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/roi_data_layer/roibatchLoader.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/roi_data_layer/roidb.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/lib/setup.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/predict_all_boxes.pkl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/strengthtest.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/test_cityscapefoggy.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/train_bdddaytime10_bddnight10.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/train_cityscape2bdd.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/train_cityscape2bdddaytime8.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/train_cityscape2cityscapefoggy.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/train_pascalvoc2clipart.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/codes/train_pascalvoc2watercolor.sh" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1yssUxbGlbLFq70ynQ6HOtVsbZP" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <module name="ATCodes_Old" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="672c23e7-14af-402e-828f-cff91e7a2cdf" name="Changes" comment="" />
+      <created>1633051650319</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1633051650319</updated>
+      <workItem from="1633051653082" duration="16234000" />
+    </task>
+    <task id="LOCAL-00001" summary="old版本，定位问题">
+      <created>1633051964619</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1633051964619</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="old版本，定位问题" />
+    <option name="LAST_COMMIT_MESSAGE" value="old版本，定位问题" />
+  </component>
+</project>

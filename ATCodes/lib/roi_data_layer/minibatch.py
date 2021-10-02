@@ -22,7 +22,7 @@ def get_minibatch(roidb, num_classes):
     # Sample random scales to use for each image in this batch
     random_scale_inds = npr.randint(0, high=len(cfg.TRAIN.SCALES), size=num_images)
     assert (
-            cfg.TRAIN.BATCH_SIZE % num_images == 0
+        cfg.TRAIN.BATCH_SIZE % num_images == 0
     ), "num_images ({}) must divide BATCH_SIZE ({})".format(
         num_images, cfg.TRAIN.BATCH_SIZE
     )

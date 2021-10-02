@@ -18,10 +18,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision.transforms as transforms
-from lib.model.da_faster_rcnn_instance_da_weight.resnet import resnet
-from lib.model.da_faster_rcnn_instance_da_weight.vgg16 import vgg16
-from lib.model.utils.config import cfg, cfg_from_file, cfg_from_list, get_output_dir
-from lib.model.utils.net_utils import (
+from model.da_faster_rcnn_instance_da_weight.resnet import resnet
+from model.da_faster_rcnn_instance_da_weight.vgg16 import vgg16
+from model.utils.config import cfg, cfg_from_file, cfg_from_list, get_output_dir
+from model.utils.net_utils import (
     EFocalLoss,
     FocalLoss,
     adjust_learning_rate,
@@ -31,12 +31,12 @@ from lib.model.utils.net_utils import (
     save_net,
     weights_normal_init,
 )
-from lib.roi_da_data_layer.roibatchLoader import roibatchLoader
-from lib.roi_da_data_layer.roidb import combined_roidb
+from roi_da_data_layer.roibatchLoader import roibatchLoader
+from roi_da_data_layer.roidb import combined_roidb
 from torch.autograd import Variable
 from torch.utils.data.sampler import Sampler
 
-import lib.active_tools.chooseStrategy as CS
+import active_tools.chooseStrategy as CS
 
 print(sys.path)
 
@@ -434,7 +434,7 @@ if __name__ == "__main__":
     args.round_num=1
 
     for i in range(args.round_num):  
-        cfg.TRAIN.USE_FLIPPED = True
+        cfg.TRAIN.USE_FLIPPED = False
         cfg.USE_GPU_NMS = args.cuda
 
         s_imdb, s_roidb, s_ratio_list, s_ratio_index = combined_roidb(args.s_imdb_name)

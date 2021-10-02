@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
-from lib.model.utils.config import cfg
+from model.utils.config import cfg
 from torch.autograd import Function, Variable
 
 
@@ -357,14 +357,11 @@ class FocalLoss(nn.Module):
         self.reduce = reduce
 
     def forward(self, inputs, targets):
-        print("inputs:")
-        print(inputs)
         N = inputs.size(0)
         # print(N)
         C = inputs.size(1)
         if self.sigmoid:
-            P = F.sigmoid(inputs)  #
-            print(P)
+            P = F.sigmoid(inputs)
             # F.softmax(inputs)
             if targets == 0:
                 probs = 1 - P  # (P * class_mask).sum(1).view(-1, 1)
@@ -377,7 +374,6 @@ class FocalLoss(nn.Module):
         else:
             # inputs = F.sigmoid(inputs)
             P = F.softmax(inputs)
-            print(P)
 
             class_mask = inputs.data.new(N, C).fill_(0)
             class_mask = Variable(class_mask)
@@ -389,13 +385,7 @@ class FocalLoss(nn.Module):
                 self.alpha = self.alpha.cuda()
             alpha = self.alpha[ids.data.view(-1)]
 
-            print("class_mask:")
-            print(class_mask)
-
             probs = (P * class_mask).sum(1).view(-1, 1)
-
-            print("probs:")
-            print(probs)
 
             log_p = probs.log()
             # print('probs size= {}'.format(probs.size()))
