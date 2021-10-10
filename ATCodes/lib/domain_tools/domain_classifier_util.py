@@ -20,7 +20,7 @@ class Domain_classifier:
         self.gt_boxes = None
 
 
-        self.phi = 0.75  # 系数比
+        self.phi = 0.8  # 系数比
         self.dic = {}  # key:图片名 value:不确定值
 
     def set_args(self, num_boxes, gt_boxes, da_weight):
@@ -133,9 +133,9 @@ class Domain_classifier:
         Returns:
             通过局部域分类器该域的概率
         '''
-        source_value = 0.5 * torch.mean(out_d_pixel ** 2)
-        target_value = 0.5 * torch.mean((1 - out_d_pixel) ** 2)
-        out_d_pixels = torch.tensor([[source_value, target_value]])
+        loss_source_value = 0.5 * torch.mean(out_d_pixel ** 2)
+        loss_target_value = 0.5 * torch.mean((1 - out_d_pixel) ** 2)
+        out_d_pixels = torch.tensor([[loss_target_value, loss_source_value]])
         P = F.softmax(out_d_pixels)
         P_numpy = P.cpu().detach().numpy()[0]
         if not target_flag:  # source

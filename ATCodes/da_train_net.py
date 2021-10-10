@@ -256,6 +256,14 @@ def parse_args():
         default=0,
         type=int
     )
+
+    '''考虑训练时中断，这时重新开始时不需要迁移数据'''
+    parser.add_argument(
+        "--first_not_transfer",dest="first_not_transfer",
+        help="first_not_transfer",
+        default=0,
+        type=int
+    )
     args = parser.parse_args()
     return args
 
@@ -570,43 +578,46 @@ if __name__ == "__main__":
         # 2 加载模型
         fasterRCNN, FL, optimizer, lr = model_loader_tool(args, output_dir)
 
-        # 3 检测 + 迁移
-        source_list=None
-        target_list=None
-        if args.select_strategy != 0 and args.select_strategy != 1:
-            # source
-            DC_source = Domain_classifier(fasterRCNN, dataset_s)
-            gt_boxes.data.resize_(1, 1, 5).zero_()
-            num_boxes.data.resize_(1).zero_()
-            DC_source.set_args(
-                num_boxes,
-                gt_boxes,
-                da_weight=1.0,
-            )
+        if args.first_not_transfer==0:
+            # 3 检测 + 迁移
+            source_list=None
+            target_list=None
+            if args.select_strategy != 0 and args.select_strategy != 1:
+                # source
+                DC_source = Domain_classifier(fasterRCNN, dataset_s)
+                gt_boxes.data.resize_(1, 1, 5).zero_()
+                num_boxes.data.resize_(1).zero_()
+                DC_source.set_args(
+                    num_boxes,
+                    gt_boxes,
+                    da_weight=1.0,
+                )
 
-            source_list = DC_source.get_calculate_domain_list(False)
-            for i in range(len(source_list)):
-                source_list[i] = (source_list[i].split("/"))[-1]
-            # target
-            DC_target = Domain_classifier(fasterRCNN, dataset_t)
-            gt_boxes.data.resize_(1, 1, 5).zero_()
-            num_boxes.data.resize_(1).zero_()
-            DC_target.set_args(
-                num_boxes,
-                gt_boxes,
-                da_weight=1.0
-            )
-            target_list = DC_target.get_calculate_domain_list(True)
-            for i in range(len(target_list)):
-                target_list[i] = (target_list[i].split("/"))[-1]
+                source_list = DC_source.get_calculate_domain_list(False)
+                for i in range(len(source_list)):
+                    source_list[i] = (source_list[i].split("/"))[-1]
+                # target
+                DC_target = Domain_classifier(fasterRCNN, dataset_t)
+                gt_boxes.data.resize_(1, 1, 5).zero_()
+                num_boxes.data.resize_(1).zero_()
+                DC_target.set_args(
+                    num_boxes,
+                    gt_boxes,
+                    da_weight=1.0
+                )
+                target_list = DC_target.get_calculate_domain_list(True)
+                for i in range(len(target_list)):
+                    target_list[i] = (target_list[i].split("/"))[-1]
 
-        Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), args.start_epoch, s_t_ratio,
-                                                  args.dataset, args.gpu_id, args.select_strategy, types='train',
-                                                  source_list=source_list, target_list=target_list)
-        print("\n Hello wolrd\n")
-        if not Detection_result:
-            print("some error!")
-            break
+            Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), args.start_epoch, s_t_ratio,
+                                                      args.dataset, args.gpu_id, args.select_strategy, types='train',
+                                                      source_list=source_list, target_list=target_list)
+            print("\n Hello wolrd\n")
+            if not Detection_result:
+                print("some error!")
+                break
+        else:
+            args.first_not_transfer=0
 
         # 4 重新加载
         im_data, im_info, im_cls_lb, num_boxes, gt_boxes, dataloader_s, dataloader_t, s_imdb, s_roidb, s_ratio_list, s_ratio_index, output_dir, s_train_size, t_train_size, dataset_s, dataset_t = data_loader_tools(args)
