@@ -39,8 +39,10 @@ import da_test_net
 
 import active_tools.chooseStrategy as CS
 # from domain_tools.domain_classifier_util import Domain_classifier
-import domain_tools.domain_classifier_list as DomainTool
-import model_tools.model_resource as MR
+import lib.domain_tools.domain_classifier_list as DomainTool
+import lib.model_tools.model_resource as MR
+from transfer import do_transfer
+from calculate_map import do_calculate_mAP
 
 print(sys.path)
 
@@ -312,7 +314,7 @@ def data_loader_tools(s_imdb_name,t_imdb_name,batch_size,nums_worker,cuda_flag):
     t_imdb, t_roidb, t_ratio_list, t_ratio_index = combined_roidb(t_imdb_name)
     t_train_size = len(t_roidb)  # add flipped         image_index*2
 
-    print("s_t_ratio:", s_t_ratio)
+    # print("s_t_ratio:", s_t_ratio)
 
     print("source {:d} target {:d} roidb entries".format(len(s_roidb), len(t_roidb)))
 
@@ -444,7 +446,7 @@ def model_loader_tool(net_name,s_imdb,pretrained_path,class_agnostic,lc,gc,lr,ar
 
     # 加载模型
     if resume_flag:
-        current_model=MR.get_current_model(model_dir)
+        current_model,model_epoch=MR.get_current_model(model_dir)
         load_name = os.path.join(model_dir, current_model)
         print("loading checkpoint %s" % (load_name))
         checkpoint = torch.load(load_name)
@@ -461,7 +463,7 @@ def model_loader_tool(net_name,s_imdb,pretrained_path,class_agnostic,lc,gc,lr,ar
         FL = FocalLoss(class_num=2, gamma=args.gamma)
 
     # count_iter = 0
-    return fasterRCNN, optimizer, FL, lr
+    return fasterRCNN, optimizer, FL, lr,model_epoch
 
 
 if __name__ == "__main__":
@@ -534,7 +536,7 @@ if __name__ == "__main__":
         print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
     # s_t_ratio应该维持最开始的ratio
-    s_t_ratio = args.st_ratio
+    # s_t_ratio = args.st_ratio
 
     '''
     每一轮
@@ -547,35 +549,32 @@ if __name__ == "__main__":
 
         # 1 加载数据
         im_data, im_info, im_cls_lb, num_boxes, gt_boxes, dataloader_s, dataloader_t, s_imdb, s_roidb, s_ratio_list, s_ratio_index, output_dir, s_train_size, t_train_size, dataset_s, dataset_t =\
-            data_loader_tools(args.s_imdb_name,args.t_imdb_name,args.batch_size,args.num_workers)
+            data_loader_tools(args.s_imdb_name,args.t_imdb_name,args.batch_size,args.num_workers,args.cuda)
 
         # 2 加载模型
-        fasterRCNN, optimizer,FL, lr = \
+        fasterRCNN, optimizer,FL, lr,model_epoch = \
             model_loader_tool(args.net,s_imdb,args.pretrained_path,args.class_agnostic,args.lc,args.gc,args.lr,optimizer,args.da_use_contex,args.cuda,args.resume,args.save_dir)
 
         if args.first_not_transfer==0:
             # 3 检测 + 迁移
-
             #域分类器场景得到列表
             source_list,target_list=DomainTool.get_source_target_list(args.select_strategy,fasterRCNN, dataset_s,dataset_t,gt_boxes,num_boxes)
-
-            #检测，迁移
-            Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), args.start_epoch, s_t_ratio,
-                                                      args.dataset, args.gpu_id, args.select_strategy, types='train',
-                                                      source_list=source_list, target_list=target_list)
+            do_transfer(0.05,args.st_ratio,args.dataset,args.gpu_id,args.select_strategy,source_list,target_list,args.cuda,args.net,args.lc,args.gc,args.class_agnostic)
         else:
+            #已迁移过，不用再迁移
             args.first_not_transfer=0
 
         # 4 重新加载
         im_data, im_info, im_cls_lb, num_boxes, gt_boxes, dataloader_s, dataloader_t, s_imdb, s_roidb, s_ratio_list, s_ratio_index, output_dir, s_train_size, t_train_size, dataset_s, dataset_t = \
-            data_loader_tools(args.s_imdb_name,args.t_imdb_name,args.batch_size,args.num_workers)
+            data_loader_tools(args.s_imdb_name,args.t_imdb_name,args.batch_size,args.num_workers,args.cuda)
 
         # 5 训练
         if args.resume:
             args.max_epochs = args.start_epoch + 1
         iters_per_epoch = max(int(s_train_size / (args.batch_size)), int(t_train_size / args.batch_size))
 
-        for epoch in range(args.start_epoch, args.max_epochs + 1):
+        epoch_unit=2
+        for epoch in range(0, epoch_unit):
             # setting to train mode
             fasterRCNN.train()
             loss_temp = 0
@@ -597,8 +596,7 @@ if __name__ == "__main__":
                 except:
                     data_iter_t = iter(dataloader_t)
                     data_t = next(data_iter_t)
-                # eta = 1.0
-                # count_iter += 1
+
                 # put source data into variable
                 im_data.data.resize_(data_s[0].size()).copy_(data_s[0])
                 im_info.data.resize_(data_s[1].size()).copy_(data_s[1])
@@ -723,14 +721,14 @@ if __name__ == "__main__":
 
                     loss_temp = 0
                     start = time.time()
-            if epoch % args.checkpoint_interval == 0 or epoch == args.max_epochs:
+            if epoch == epoch_unit-1:
                 save_name = os.path.join(
                     output_dir, "{}.pth".format(args.dataset + "_" + str(epoch)),
                 )
                 save_checkpoint(
                     {
                         "session": args.session,
-                        "epoch": epoch + 1,
+                        "epoch": model_epoch + 1,
                         "model": fasterRCNN.state_dict(),
                         "optimizer": optimizer.state_dict(),
                         "pooling_mode": cfg.POOLING_MODE,
@@ -740,17 +738,4 @@ if __name__ == "__main__":
                 )
                 print("save model: {}".format(save_name))
 
-                # print("\n Hello wolrd\n")
-                # if not Detection_result:
-                #     print("some error!")
-                #     break
-                # 测试当前模型 并进行数据迁移
-                #
-                # import da_test_net
-                #
-                # Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), epoch, s_t_ratio,
-                #                                           args.dataset, args.gpu_id)
-            Detection_result = da_test_net.start_test(float(1.0 / int(args.round_num)), args.start_epoch, s_t_ratio,
-                                                      args.dataset, args.gpu_id, args.select_strategy, types='test')
-
-    # getlist=CS.uncertain_sample()
+            do_calculate_mAP(args.dataset,args.gpu_id,args.cuda,args.net,args.class_agnostic,args.lc,args.gc)

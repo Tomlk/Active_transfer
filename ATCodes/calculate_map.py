@@ -39,19 +39,10 @@ except NameError:
 
 
 import lib.model_tools.model_resource as MR
-from lib.active_tools.strategy_enum import Strategy
-from lib.active_tools.chooseStrategy import uncertain_sample
 
 
-def get_random_list(img_dir):
-    random_list = CS.random_sample(img_dir)
-    l=[]
-    for item in random_list:
-        l.append(item.split('/')[-1])
-    return l
 
-
-def get_lc_list(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag):
+def cal_and_write(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag):
     model_dir=os.listdir(os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model"))
     current_model=MR.get_current_model(model_dir)
     model_epoch=current_model.split('_')[-1]
@@ -253,20 +244,13 @@ def get_lc_list(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnosti
             )
         )
         sys.stdout.flush()
-
-    detection_results=imdb.get_lc_sorted_list(all_boxes)
-
-    sorted_list=uncertain_sample(detection_results,len(detection_results))
-
-    for i in range(len(sorted_list)):
-        sorted_list[i] = (sorted_list[i].split("/"))[-1]
-
-    return sorted_list
+    imdb.evaluate_detections(all_boxes,model_epoch)
 
 
 
+def do_calculate_mAP(dataset_name,gpu_id,cuda_flag,net,class_agnostic,lc,gc):
 
-def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,target_list,cuda_flag,net,lc,gc,class_agnostic):
+
     if torch.cuda.is_available() and not cuda_flag:
         print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
@@ -274,11 +258,8 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
 
     os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_id)
 
-
     if dataset_name == "cityscapefoggy":
-        print("loading our dataset...........")
-        args_s_imdb_name = "cityscape_trainval"
-        args_t_imdb_name = "cityscapefoggy_trainval"
+        args_t_imdbtest_name = "cityscapefoggy_test"
         args_set_cfgs = [
             "ANCHOR_SCALES",
             "[8,16,32]",
@@ -288,9 +269,7 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
             "30",
         ]
     elif dataset_name == "clipart":
-        print("loading our dataset...........")
-        args_s_imdb_name = "voc_2007_trainval+voc_2012_trainval"
-        args_t_imdb_name = "clipart_trainval"
+        args_t_imdbtest_name = "clipart_test"
         args_set_cfgs = [
             "ANCHOR_SCALES",
             "[8,16,32]",
@@ -301,9 +280,7 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
         ]
 
     elif dataset_name == "watercolor":
-        print("loading our dataset...........")
-        args_s_imdb_name = "voc_water_2007_trainval+voc_water_2012_trainval"
-        args_t_imdb_name = "watercolor_trainval"
+        args_t_imdbtest_name = "watercolor_test"
         args_set_cfgs = [
             "ANCHOR_SCALES",
             "[8,16,32]",
@@ -322,63 +299,23 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
     if args_set_cfgs is not None:
         cfg_from_list(args_set_cfgs)
 
-    print("Using config:")
-    pprint.pprint(cfg)
-
     cfg.TRAIN.USE_FLIPPED = False
 
-    imdb, roidb, ratio_list, ratio_index = combined_roidb(args_t_imdb_name, False)
+
+    imdb, roidb, ratio_list, ratio_index = combined_roidb(args_t_imdbtest_name, False)
+
+
+    imdb.competition_mode(on=True)
+
+    print("{:d} roidb entries".format(len(roidb)))
 
 
     model_dir=os.listdir(os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model"))
     current_model=MR.get_current_model(model_dir)
     model_epoch=current_model.split('_')[-1]
-    sorted_transfer_list=[]
-    sorted_remove_list=[]
-
-    if select_strategy==Strategy.random_strategy: #random
-        sorted_transfer_list=get_random_list(os.path.join(imdb.get_dataset_path(),"JPEGImages"))
-    elif select_strategy==Strategy.lc_strategy:
-        #加载最新模型计算不确定度
-        sorted_transfer_list=get_lc_list(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag)
-    elif select_strategy==Strategy.dt_t_strategy:
-        sorted_transfer_list=target_list
-    elif select_strategy==Strategy.dt_t_lc_strategy:
-        l1=get_lc_list(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag)
-        l2=target_list
-        sorted_dic = {}
-        for i in range(0,min(len(target_list),len(l1))):
-            item_1 = l2[i]
-            item_2 = l1[i]
-            if not sorted_dic.__contains__(item_1):
-                sorted_dic[item_1] = 0
-            if not sorted_dic.__contains__(item_2):
-                sorted_dic[item_2] = 0
-
-            sorted_dic[item_1] += i
-            sorted_dic[item_2] += i
-
-        sorted_transfer_list_tuple = sorted(sorted_dic.items(), key=lambda d: d[1], reverse=False)
-        for item in sorted_transfer_list_tuple:
-            sorted_transfer_list.append(item[0])
-
-    elif select_strategy==Strategy.dt_t_s_strategy:
-        sorted_transfer_list=target_list
-        sorted_remove_list=source_list
-
-    if len(sorted_remove_list)>0:
-        imdb.remove_datas_from_source(sorted_remove_list)
-
-    if len(sorted_transfer_list)>0:
-        imdb.add_datas_from_target(sorted_transfer_list,float(ratio),model_epoch,s_t_ratio)
 
 
-
-
-
-
-
-
+    cal_and_write(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag)
 
 
 
