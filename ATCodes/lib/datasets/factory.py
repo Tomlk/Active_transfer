@@ -23,7 +23,7 @@ from datasets.pascal_voc import pascal_voc
 from datasets.pascal_voc_water import pascal_voc_water
 from datasets.rpc import rpc
 from datasets.rpc_fake import rpc_fake
-from datasets.sim10k_coco import sim10k
+from datasets.sim10k import sim10k
 from datasets.vg import vg
 # from datasets.water import water
 from datasets.watercolor import watercolor
@@ -111,11 +111,11 @@ for year in ["2015"]:
         name = "coco_{}_{}".format(year, split)
         __sets[name] = lambda split=split, year=year: coco(split, year)
 
-# Set up sim10k coco style and cityscapes coco style
-for year in ["2019"]:
-    for split in ["train", "val"]:
-        name = "sim10k_{}_{}".format(year, split)
+for year in ["2007", "2012"]:
+    for split in ["trainval", "test","train"]:
+        name = "sim10k_{}".format(split)
         __sets[name] = lambda split=split, year=year: sim10k(split, year)
+
 # Set up sim10k coco style and cityscapes coco style
 for year in ["2019"]:
     for split in ["train", "val"]:

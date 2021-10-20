@@ -29,6 +29,7 @@ __D.BDDDAYTIME8="./data/datasets/bdddaytime8"
 __D.BDDDAYTIME10="./data/datasets/bdddaytime10"
 __D.BDDNIGHT10="./data/datasets/bddnight10"
 __D.WATERCOLOR = "./data/datasets/watercolor"
+__D.SIM10K = "./data/datasets/sim10k"
 
 
 def _merge_a_into_b(a, b):

@@ -147,17 +147,6 @@ def parse_args():
         "--s", dest="session", help="training session", default=1, type=int
     )
 
-    # resume trained model
-    parser.add_argument(
-        "--r", dest="resume", help="resume checkpoint or not", default=False, type=bool
-    )
-    parser.add_argument(
-        "--resume_name",
-        dest="resume_name",
-        help="resume checkpoint path",
-        default="",
-        type=str,
-    )
     parser.add_argument(
         "--model_name",
         dest="model_name",
@@ -201,13 +190,6 @@ def parse_args():
     )
     parser.add_argument(
         "--gamma", dest="gamma", help="value of gamma", default=5, type=float
-    )
-    parser.add_argument(
-        "--max_epochs",
-        dest="max_epochs",
-        help="max epoch for train",
-        default=7,
-        type=int,
     )
     parser.add_argument(
         "--start_epoch", dest="start_epoch", help="starting epoch", default=1, type=int
@@ -318,7 +300,9 @@ def data_loader_tools(s_imdb_name,t_imdb_name,batch_size,nums_worker,cuda_flag):
 
     print("source {:d} target {:d} roidb entries".format(len(s_roidb), len(t_roidb)))
 
-
+    output_dir = args.save_dir
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     s_sampler_batch = sampler(s_train_size, batch_size)
     t_sampler_batch = sampler(t_train_size, batch_size)
 
@@ -376,7 +360,7 @@ def data_loader_tools(s_imdb_name,t_imdb_name,batch_size,nums_worker,cuda_flag):
     return im_data, im_info, im_cls_lb, num_boxes, gt_boxes, dataloader_s, dataloader_t, s_imdb, s_roidb, s_ratio_list, s_ratio_index, output_dir, s_train_size, t_train_size, dataset_s, dataset_t
 
 
-def model_loader_tool(net_name,s_imdb,pretrained_path,class_agnostic,lc,gc,lr,arg_optimizer,da_use_contex,cuda_flag,resume_flag,model_dir):
+def model_loader_tool(net_name,s_imdb,pretrained_path,class_agnostic,lc,gc,lr,arg_optimizer,da_use_contex,cuda_flag,model_dir):
     """
     加载模型
     Args:
@@ -445,17 +429,16 @@ def model_loader_tool(net_name,s_imdb,pretrained_path,class_agnostic,lc,gc,lr,ar
         fasterRCNN.cuda()
 
     # 加载模型
-    if resume_flag:
-        current_model,model_epoch=MR.get_current_model(model_dir)
-        load_name = os.path.join(model_dir, current_model)
-        print("loading checkpoint %s" % (load_name))
-        checkpoint = torch.load(load_name)
-        fasterRCNN.load_state_dict(checkpoint["model"])
-        optimizer.load_state_dict(checkpoint["optimizer"])
-        lr = optimizer.param_groups[0]["lr"]
-        if "pooling_mode" in checkpoint.keys():
-            cfg.POOLING_MODE = checkpoint["pooling_mode"]
-        print("loaded checkpoint %s" % (load_name))
+    current_model,model_epoch=MR.get_current_model(model_dir)
+    load_name = os.path.join(model_dir, current_model)
+    print("loading checkpoint %s" % (load_name))
+    checkpoint = torch.load(load_name)
+    fasterRCNN.load_state_dict(checkpoint["model"])
+    optimizer.load_state_dict(checkpoint["optimizer"])
+    lr = optimizer.param_groups[0]["lr"]
+    if "pooling_mode" in checkpoint.keys():
+        cfg.POOLING_MODE = checkpoint["pooling_mode"]
+    print("loaded checkpoint %s" % (load_name))
 
     if args.ef:
         FL = EFocalLoss(class_num=2, gamma=args.gamma)
@@ -515,6 +498,20 @@ if __name__ == "__main__":
             "MAX_NUM_GT_BOXES",
             "20",
         ]
+    elif args.dataset=="sim10k":
+        print("loading our dataset...........")
+        args.s_imdb_name = "cityscape_trainval"
+        args.s_imdbtest_name = "cityscape_test"
+        args.t_imdb_name = "sim10k_trainval"
+        args.t_imdbtest_name = "sim10k_test"
+        args.set_cfgs = [
+            "ANCHOR_SCALES",
+            "[8,16,32]",
+            "ANCHOR_RATIOS",
+            "[0.5,1,2]",
+            "MAX_NUM_GT_BOXES",
+            "30",
+        ]
 
     args.cfg_file = (
         "cfgs/{}_ls.yml".format(args.net)
@@ -553,15 +550,18 @@ if __name__ == "__main__":
 
         # 2 加载模型
         fasterRCNN, optimizer,FL, lr,model_epoch = \
-            model_loader_tool(args.net,s_imdb,args.pretrained_path,args.class_agnostic,args.lc,args.gc,args.lr,optimizer,args.da_use_contex,args.cuda,args.resume,args.save_dir)
-
+            model_loader_tool(args.net,s_imdb,args.pretrained_path,args.class_agnostic,args.lc,args.gc,args.lr,args.optimizer,args.da_use_contex,args.cuda,args.save_dir)
+        # print(args.first_not_transfer==0)
+        # input()
         if args.first_not_transfer==0:
-            # 3 检测 + 迁移
-            #域分类器场景得到列表
+            # 3 迁移
+            print("迁移...")
             source_list,target_list=DomainTool.get_source_target_list(args.select_strategy,fasterRCNN, dataset_s,dataset_t,gt_boxes,num_boxes)
             do_transfer(0.05,args.st_ratio,args.dataset,args.gpu_id,args.select_strategy,source_list,target_list,args.cuda,args.net,args.lc,args.gc,args.class_agnostic)
         else:
             #已迁移过，不用再迁移
+            print("已迁移过，不用再迁移....")
+            input()
             args.first_not_transfer=0
 
         # 4 重新加载
@@ -569,8 +569,6 @@ if __name__ == "__main__":
             data_loader_tools(args.s_imdb_name,args.t_imdb_name,args.batch_size,args.num_workers,args.cuda)
 
         # 5 训练
-        if args.resume:
-            args.max_epochs = args.start_epoch + 1
         iters_per_epoch = max(int(s_train_size / (args.batch_size)), int(t_train_size / args.batch_size))
 
         epoch_unit=2
@@ -696,7 +694,7 @@ if __name__ == "__main__":
                     print("round: {}".format(i + 1))
                     print(
                         "[session %d][epoch %2d][iter %4d/%4d] loss: %.4f, lr: %.2e"
-                        % (args.session, epoch, step, iters_per_epoch, loss_temp, lr)
+                        % (args.session, model_epoch+1, step, iters_per_epoch, loss_temp, lr)
                     )
                     print(
                         "\t\t\tfg/bg=(%d/%d), time cost: %f" % (fg_cnt, bg_cnt, end - start)

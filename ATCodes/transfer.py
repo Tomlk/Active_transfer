@@ -53,8 +53,7 @@ def get_random_list(img_dir):
 
 def get_lc_list(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag):
     model_dir=os.listdir(os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model"))
-    current_model=MR.get_current_model(model_dir)
-    model_epoch=current_model.split('_')[-1]
+    current_model,model_epoch=MR.get_current_model(model_dir)
     print(current_model)
 
     # initilize the network here.
@@ -312,7 +311,18 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
             "MAX_NUM_GT_BOXES",
             "20",
         ]
-
+    if dataset_name == "sim10k":
+        print("loading our dataset...........")
+        args_s_imdb_name = "cityscape_trainval"
+        args_t_imdb_name = "sim10k_trainval"
+        args_set_cfgs = [
+            "ANCHOR_SCALES",
+            "[8,16,32]",
+            "ANCHOR_RATIOS",
+            "[0.5,1,2]",
+            "MAX_NUM_GT_BOXES",
+            "30",
+        ]
     args_cfg_file = (
         "cfgs/{}.yml".format(net)
     )
@@ -330,20 +340,27 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
     imdb, roidb, ratio_list, ratio_index = combined_roidb(args_t_imdb_name, False)
 
 
-    model_dir=os.listdir(os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model"))
-    current_model=MR.get_current_model(model_dir)
-    model_epoch=current_model.split('_')[-1]
+    # model_dir=os.listdir(os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model"))
+    # model_dir=os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model")
+    # current_model,model_epoch=MR.get_current_model(model_dir)
+    current_model,model_epoch=MR.get_current_model(os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model"))
+    # model_epoch=current_model.split('_')[-1]
     sorted_transfer_list=[]
     sorted_remove_list=[]
 
-    if select_strategy==Strategy.random_strategy: #random
+    # print("迁移策略：",select_strategy)
+    # print(Strategy.random_strategy.value)
+    # input()
+    if select_strategy==Strategy.random_strategy.value: #random
+        print("random 迁移")
         sorted_transfer_list=get_random_list(os.path.join(imdb.get_dataset_path(),"JPEGImages"))
-    elif select_strategy==Strategy.lc_strategy:
+    elif select_strategy==Strategy.lc_strategy.value:
         #加载最新模型计算不确定度
+        print("lc 迁移")
         sorted_transfer_list=get_lc_list(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag)
-    elif select_strategy==Strategy.dt_t_strategy:
+    elif select_strategy==Strategy.dt_t_strategy.value:
         sorted_transfer_list=target_list
-    elif select_strategy==Strategy.dt_t_lc_strategy:
+    elif select_strategy==Strategy.dt_t_lc_strategy.value:
         l1=get_lc_list(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag)
         l2=target_list
         sorted_dic = {}
@@ -362,9 +379,11 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
         for item in sorted_transfer_list_tuple:
             sorted_transfer_list.append(item[0])
 
-    elif select_strategy==Strategy.dt_t_s_strategy:
+    elif select_strategy==Strategy.dt_t_s_strategy.value:
         sorted_transfer_list=target_list
         sorted_remove_list=source_list
+    else:
+        raise NameError
 
     if len(sorted_remove_list)>0:
         imdb.remove_datas_from_source(sorted_remove_list)

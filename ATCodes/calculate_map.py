@@ -43,9 +43,8 @@ import lib.model_tools.model_resource as MR
 
 
 def cal_and_write(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag):
-    model_dir=os.listdir(os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model"))
-    current_model=MR.get_current_model(model_dir)
-    model_epoch=current_model.split('_')[-1]
+    model_dir=os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model")
+    current_model,model_epoch=MR.get_current_model(model_dir)
     print(current_model)
 
     # initilize the network here.
@@ -289,6 +288,16 @@ def do_calculate_mAP(dataset_name,gpu_id,cuda_flag,net,class_agnostic,lc,gc):
             "MAX_NUM_GT_BOXES",
             "20",
         ]
+    if dataset_name == "sim10k":
+        args_t_imdbtest_name = "sim10k_test"
+        args_set_cfgs = [
+            "ANCHOR_SCALES",
+            "[8,16,32]",
+            "ANCHOR_RATIOS",
+            "[0.5,1,2]",
+            "MAX_NUM_GT_BOXES",
+            "30",
+        ]
 
     args_cfg_file = (
         "cfgs/{}.yml".format(net)
@@ -308,12 +317,6 @@ def do_calculate_mAP(dataset_name,gpu_id,cuda_flag,net,class_agnostic,lc,gc):
     imdb.competition_mode(on=True)
 
     print("{:d} roidb entries".format(len(roidb)))
-
-
-    model_dir=os.listdir(os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model"))
-    current_model=MR.get_current_model(model_dir)
-    model_epoch=current_model.split('_')[-1]
-
 
     cal_and_write(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag)
 
