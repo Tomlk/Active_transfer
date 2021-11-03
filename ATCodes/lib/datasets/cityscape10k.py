@@ -11,7 +11,6 @@ import numpy as np
 import scipy.io as sio
 import scipy.sparse
 
-# TODO: make fast_rcnn irrelevant
 # >>>> obsolete, because it depends on sth outside of this project
 from model.utils.config import cfg
 
@@ -34,32 +33,29 @@ except NameError:
     xrange = range  # Python 3
 
 # <<<< obsolete
+
 import enhancedata_tools.enhancedata as EH
 import renewImageSetstool.renew_txt as RNtool
 
-class cityscapefoggy(imdb):
+
+class cityscape10k(imdb):
     def __init__(self, image_set, year, devkit_path=None):
-        imdb.__init__(self, "cityscapefoggy_" + image_set)
+        imdb.__init__(self, "cityscape10k_" + image_set)
         self._year = year
         self._image_set = image_set
-        # self.detection_result=[]
+        self.detection_result=[]
         # self.
 
-        self._devkit_path =cfg_d.CITYSCAPEFOGGY
+        self._devkit_path =cfg_d.CITYSCAPE10K
         #self._data_path = os.path.join(self._devkit_path, "VOC" + self._year)
         self._data_path = os.path.join(self._devkit_path)
-        self._source_data_path=cfg_d.CITYSCAPE
+        self._source_data_path=cfg_d.SIM10K
 
         self._classes = (
             "__background__",  # always index 0
-            "person",
-            "rider",
+            #"person",
             "car",
-            "truck",
-            "bus",
-            "train",
-            "motorcycle",
-            "bicycle",
+            #"motorcycle",
         )
 
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
@@ -150,7 +146,7 @@ class cityscapefoggy(imdb):
         """
         Return the default path where PASCAL VOC is expected to be installed.
         """
-        return os.path.join(cfg.DATA_DIR, "cityscapefoggy")
+        return os.path.join(cfg.DATA_DIR, "cityscape10k")
         # return self.devkit_path
 
     def gt_roidb(self):
@@ -324,7 +320,6 @@ class cityscapefoggy(imdb):
         path = os.path.join(filedir, filename)
         return path
 
-
     def get_detection_result(self,all_boxes):
         detection_result=[]
         d={}
@@ -357,7 +352,6 @@ class cityscapefoggy(imdb):
             detection_result.append(nd)
         return detection_result
 
-
     def _write_voc_results_file(self, all_boxes):
         for cls_ind, cls in enumerate(self.classes):
             if cls == "__background__":
@@ -371,16 +365,6 @@ class cityscapefoggy(imdb):
                         continue
                     # the VOCdevkit expects 1-based indices
                     for k in xrange(dets.shape[0]):
-                        # f.write(
-                        #     "{:s} {:.3f} {:.1f} {:.1f} {:.1f} {:.1f}\n".format(
-                        #         index,
-                        #         dets[k, -1],
-                        #         dets[k, 0] + 1,
-                        #         dets[k, 1] + 1,
-                        #         dets[k, 2] + 1,
-                        #         dets[k, 3] + 1,
-                        #     )
-                        # )
                         f.write(
                             "{:s} {:.3f} {:.1f} {:.1f} {:.1f} {:.1f}\n".format(
                                 index,
@@ -392,7 +376,7 @@ class cityscapefoggy(imdb):
                             )
                         )
 
-    def _do_python_eval(self,epoch_index):
+    def _do_python_eval(self, output_dir,epoch_index):
         # annopath = os.path.join(
         #     self._devkit_path, "VOC" + self._year, "Annotations", "{:s}.xml"
         # )
@@ -410,8 +394,8 @@ class cityscapefoggy(imdb):
         # The PASCAL VOC metric changed in 2010
         use_07_metric = True if int(self._year) < 2010 else False
         print("VOC07 metric? " + ("Yes" if use_07_metric else "No"))
-        # if not os.path.isdir(output_dir):
-        #     os.mkdir(output_dir)
+        if not os.path.isdir(output_dir):
+            os.mkdir(output_dir)
         classaps=[]
         for i, cls in enumerate(self._classes):
             if cls == "__background__":
@@ -429,8 +413,8 @@ class cityscapefoggy(imdb):
             aps += [ap]
             classaps.append([cls,ap])
             print("AP for {} = {:.4f}".format(cls, ap))
-            # with open(os.path.join(output_dir, cls + "_pr.pkl"), "wb") as f:
-            #     pickle.dump({"rec": rec, "prec": prec, "ap": ap}, f)
+            with open(os.path.join(output_dir, cls + "_pr.pkl"), "wb") as f:
+                pickle.dump({"rec": rec, "prec": prec, "ap": ap}, f)
         print("Mean AP = {:.4f}".format(np.mean(aps)))
         classaps.append(["mAP",np.mean(aps)])
         #writetoresult
@@ -470,10 +454,6 @@ class cityscapefoggy(imdb):
         self._write_voc_results_file(all_boxes)
         self._do_python_eval(epoch_index)    # 计算 map
 
-    def get_lc_sorted_list(self,all_boxes):
-        return self.get_detection_result(all_boxes)
-
-
     def add_datas_from_target(self,l,ratio,model_epoch,st_ratio):
         #挑选的数目 :0.05 *图片数目
         select_num=int(ratio*len(self.image_index))
@@ -504,6 +484,7 @@ class cityscapefoggy(imdb):
         #更新源域txt
         RNtool.gettxt(self._source_data_path,1)
 
+
     def remove_datas_from_source(self,l):
         for i in range(0,0.1*len(l)):  #默认剔除当前10%
             img=l[i]
@@ -516,7 +497,6 @@ class cityscapefoggy(imdb):
                 os.remove(xml_path)
         #更新源域txt
         RNtool.gettxt(self._source_data_path,1)
-
 
     def competition_mode(self, on):
         if on:

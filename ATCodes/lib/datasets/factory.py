@@ -16,6 +16,8 @@ from datasets.clipart import clipart
 from datasets.bdddaytime8 import bdddaytime8
 from datasets.bdddaytime10 import bdddaytime10
 from datasets.bddnight10 import bddnight10
+from datasets.sim10k import sim10k
+from datasets.cityscape10k import cityscape10k
 
 from datasets.coco import coco
 from datasets.imagenet import imagenet
@@ -23,7 +25,6 @@ from datasets.pascal_voc import pascal_voc
 from datasets.pascal_voc_water import pascal_voc_water
 from datasets.rpc import rpc
 from datasets.rpc_fake import rpc_fake
-from datasets.sim10k import sim10k
 from datasets.vg import vg
 # from datasets.water import water
 from datasets.watercolor import watercolor
@@ -80,6 +81,16 @@ for year in ["2007", "2012"]:
         name = "cityscapefoggy_{}".format(split)
         __sets[name] = lambda split=split, year=year: cityscapefoggy(split, year)
 
+for year in ["2007", "2012"]:
+    for split in ["trainval", "test","train"]:
+        name = "sim10k_{}".format(split)
+        __sets[name] = lambda split=split, year=year: sim10k(split, year)
+
+for year in ["2007", "2012"]:
+    for split in ["trainval", "test","train"]:
+        name = "cityscape10k_{}".format(split)
+        __sets[name] = lambda split=split, year=year: cityscape10k(split, year)
+
 for year in ["2007"]:
     for split in ["val", "test"]:
         name = "rpc_{}".format(split)
@@ -110,11 +121,6 @@ for year in ["2015"]:
     for split in ["test", "test-dev"]:
         name = "coco_{}_{}".format(year, split)
         __sets[name] = lambda split=split, year=year: coco(split, year)
-
-for year in ["2007", "2012"]:
-    for split in ["trainval", "test","train"]:
-        name = "sim10k_{}".format(split)
-        __sets[name] = lambda split=split, year=year: sim10k(split, year)
 
 # Set up sim10k coco style and cityscapes coco style
 for year in ["2019"]:

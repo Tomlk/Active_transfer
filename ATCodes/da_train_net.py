@@ -519,6 +519,21 @@ if __name__ == "__main__":
             "MAX_NUM_GT_BOXES",
             "30",
         ]
+    elif args.dataset=="cityscape10k":
+        print("loading our dataset...........")
+        args.s_imdb_name = "sim10k_trainval"
+        args.s_imdbtest_name = "sim10k_test"
+        args.t_imdb_name = "cityscape10k_trainval"
+        args.t_imdbtest_name = "cityscape10k_test"
+        args.set_cfgs = [
+            "ANCHOR_SCALES",
+            "[8,16,32]",
+            "ANCHOR_RATIOS",
+            "[0.5,1,2]",
+            "MAX_NUM_GT_BOXES",
+            "30",
+        ]
+
 
     args.cfg_file = (
         "cfgs/{}_ls.yml".format(args.net)

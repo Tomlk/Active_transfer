@@ -273,10 +273,8 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
 
     os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_id)
 
-
     if dataset_name == "cityscapefoggy":
         print("loading our dataset...........")
-        args_s_imdb_name = "cityscape_trainval"
         args_t_imdb_name = "cityscapefoggy_trainval"
         args_set_cfgs = [
             "ANCHOR_SCALES",
@@ -287,8 +285,6 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
             "30",
         ]
     elif dataset_name == "clipart":
-        print("loading our dataset...........")
-        args_s_imdb_name = "voc_2007_trainval+voc_2012_trainval"
         args_t_imdb_name = "clipart_trainval"
         args_set_cfgs = [
             "ANCHOR_SCALES",
@@ -300,8 +296,6 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
         ]
 
     elif dataset_name == "watercolor":
-        print("loading our dataset...........")
-        args_s_imdb_name = "voc_water_2007_trainval+voc_water_2012_trainval"
         args_t_imdb_name = "watercolor_trainval"
         args_set_cfgs = [
             "ANCHOR_SCALES",
@@ -313,8 +307,17 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
         ]
     if dataset_name == "sim10k":
         print("loading our dataset...........")
-        args_s_imdb_name = "cityscape_trainval"
         args_t_imdb_name = "sim10k_trainval"
+        args_set_cfgs = [
+            "ANCHOR_SCALES",
+            "[8,16,32]",
+            "ANCHOR_RATIOS",
+            "[0.5,1,2]",
+            "MAX_NUM_GT_BOXES",
+            "30",
+        ]
+    elif dataset_name=="cityscape10k":
+        args_t_imdb_name = "cityscape10k_trainval"
         args_set_cfgs = [
             "ANCHOR_SCALES",
             "[8,16,32]",
