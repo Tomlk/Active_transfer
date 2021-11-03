@@ -276,10 +276,10 @@ class cityscapefoggy(imdb):
             # y1 = float(bbox.find("ymin").text) - 1
             # x2 = float(bbox.find("xmax").text) - 1
             # y2 = float(bbox.find("ymax").text) - 1
-            x1 = int(float(bbox.find("xmin").text)) 
+            x1 = int(float(bbox.find("xmin").text))
             y1 = int(float(bbox.find("ymin").text))
-            x2 = int(float(bbox.find("xmax").text)) 
-            y2 = int(float(bbox.find("ymax").text)) 
+            x2 = int(float(bbox.find("xmax").text))
+            y2 = int(float(bbox.find("ymax").text))
 
             diffc = obj.find("difficult")
             difficult = 0 if diffc == None else int(diffc.text)
@@ -381,7 +381,7 @@ class cityscapefoggy(imdb):
                         #         dets[k, 3] + 1,
                         #     )
                         # )
-                         f.write(
+                        f.write(
                             "{:s} {:.3f} {:.1f} {:.1f} {:.1f} {:.1f}\n".format(
                                 index,
                                 dets[k, -1],
@@ -404,7 +404,7 @@ class cityscapefoggy(imdb):
             "ImageSets",
             "Main",
             self._image_set + ".txt",
-        )
+            )
         cachedir = os.path.join(self._devkit_path, "annotations_cache")
         aps = []
         # The PASCAL VOC metric changed in 2010
@@ -439,7 +439,7 @@ class cityscapefoggy(imdb):
             for i in range(len(classaps)):
                 item=str(classaps[i][0])+" "+str(classaps[i][1])+"\n"
                 f.write(item)
-            
+
             f.write("\n")
 
         print("{:.3f}".format(np.mean(aps)))
@@ -486,7 +486,7 @@ class cityscapefoggy(imdb):
             #判断是否已经添加
             if os.path.exists(os.path.join(self._source_data_path, "Annotations",xml)):
                 continue
-            
+
             for i in range(st_ratio):
                 img_path=os.path.join(self._devkit_path,"JPEGImages",img)
                 xml_path=os.path.join(self._devkit_path,"Annotations",xml)
@@ -517,7 +517,7 @@ class cityscapefoggy(imdb):
         #更新源域txt
         RNtool.gettxt(self._source_data_path,1)
 
-    
+
     def competition_mode(self, on):
         if on:
             self.config["use_salt"] = False

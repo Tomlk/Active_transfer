@@ -217,7 +217,7 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--round_num", dest="round_num", help="round_num", default=10, type=int
+        "--round_num", dest="round_num", help="round_num", default=20, type=int
     )
 
     parser.add_argument(
@@ -225,6 +225,9 @@ def parse_args():
     )
     parser.add_argument(
         "--st_ratio", dest="st_ratio", help="st_ratio", type=int
+    )
+    parser.add_argument(
+        "--round_epoch", dest="round_epoch", help="round_epoch", default=6,type=int
     )
 
     '''
@@ -435,6 +438,10 @@ def model_loader_tool(net_name,s_imdb,pretrained_path,class_agnostic,lc,gc,lr,ar
     checkpoint = torch.load(load_name)
     fasterRCNN.load_state_dict(checkpoint["model"])
     optimizer.load_state_dict(checkpoint["optimizer"])
+
+    for param_group in optimizer.param_groups:
+        param_group["lr"] = args.lr         #模型lr 初始化 ，后面再衰减
+
     lr = optimizer.param_groups[0]["lr"]
     if "pooling_mode" in checkpoint.keys():
         cfg.POOLING_MODE = checkpoint["pooling_mode"]
@@ -531,10 +538,6 @@ if __name__ == "__main__":
     # torch.backends.cudnn.benchmark = True
     if torch.cuda.is_available() and not args.cuda:
         print("WARNING: You have a CUDA device, so you should probably run with --cuda")
-
-    # s_t_ratio应该维持最开始的ratio
-    # s_t_ratio = args.st_ratio
-
     '''
     每一轮
     '''
@@ -551,8 +554,7 @@ if __name__ == "__main__":
         # 2 加载模型
         fasterRCNN, optimizer,FL, lr,model_epoch = \
             model_loader_tool(args.net,s_imdb,args.pretrained_path,args.class_agnostic,args.lc,args.gc,args.lr,args.optimizer,args.da_use_contex,args.cuda,args.save_dir)
-        # print(args.first_not_transfer==0)
-        # input()
+
         if args.first_not_transfer==0:
             # 3 迁移
             print("迁移...")
@@ -561,7 +563,6 @@ if __name__ == "__main__":
         else:
             #已迁移过，不用再迁移
             print("已迁移过，不用再迁移....")
-            input()
             args.first_not_transfer=0
 
         # 4 重新加载
@@ -571,13 +572,13 @@ if __name__ == "__main__":
         # 5 训练
         iters_per_epoch = max(int(s_train_size / (args.batch_size)), int(t_train_size / args.batch_size))
 
-        epoch_unit=2
-        for epoch in range(0, epoch_unit):
+        save_epoch=model_epoch+1
+        for epoch in range(1, args.round_epoch+1):
             # setting to train mode
             fasterRCNN.train()
             loss_temp = 0
             start = time.time()
-            if epoch % (args.lr_decay_step + 1) == 0:
+            if epoch % (args.round_epoch/2+1) == 0:
                 adjust_learning_rate(optimizer, args.lr_decay_gamma)
                 lr *= args.lr_decay_gamma
 
@@ -694,7 +695,7 @@ if __name__ == "__main__":
                     print("round: {}".format(i + 1))
                     print(
                         "[session %d][epoch %2d][iter %4d/%4d] loss: %.4f, lr: %.2e"
-                        % (args.session, model_epoch+1, step, iters_per_epoch, loss_temp, lr)
+                        % (args.session, epoch, step, iters_per_epoch, loss_temp, lr)
                     )
                     print(
                         "\t\t\tfg/bg=(%d/%d), time cost: %f" % (fg_cnt, bg_cnt, end - start)
@@ -719,21 +720,19 @@ if __name__ == "__main__":
 
                     loss_temp = 0
                     start = time.time()
-            if epoch == epoch_unit-1:
-                save_name = os.path.join(
-                    output_dir, "{}.pth".format(args.dataset + "_" + str(epoch)),
-                )
-                save_checkpoint(
-                    {
-                        "session": args.session,
-                        "epoch": model_epoch + 1,
-                        "model": fasterRCNN.state_dict(),
-                        "optimizer": optimizer.state_dict(),
-                        "pooling_mode": cfg.POOLING_MODE,
-                        "class_agnostic": args.class_agnostic,
-                    },
-                    save_name,
-                )
-                print("save model: {}".format(save_name))
-
+            save_name = os.path.join(
+                output_dir, "{}.pth".format(args.dataset + "_" + str(save_epoch)),
+            )
+            save_checkpoint(
+                {
+                    "session": args.session,
+                    "epoch": save_epoch,
+                    "model": fasterRCNN.state_dict(),
+                    "optimizer": optimizer.state_dict(),
+                    "pooling_mode": cfg.POOLING_MODE,
+                    "class_agnostic": args.class_agnostic,
+                },
+                save_name,
+            )
+            print("save model: {}".format(save_name))
             do_calculate_mAP(args.dataset,args.gpu_id,args.cuda,args.net,args.class_agnostic,args.lc,args.gc)

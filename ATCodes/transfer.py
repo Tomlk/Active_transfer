@@ -340,17 +340,10 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
     imdb, roidb, ratio_list, ratio_index = combined_roidb(args_t_imdb_name, False)
 
 
-    # model_dir=os.listdir(os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model"))
-    # model_dir=os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model")
-    # current_model,model_epoch=MR.get_current_model(model_dir)
     current_model,model_epoch=MR.get_current_model(os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model"))
-    # model_epoch=current_model.split('_')[-1]
     sorted_transfer_list=[]
     sorted_remove_list=[]
 
-    # print("迁移策略：",select_strategy)
-    # print(Strategy.random_strategy.value)
-    # input()
     if select_strategy==Strategy.random_strategy.value: #random
         print("random 迁移")
         sorted_transfer_list=get_random_list(os.path.join(imdb.get_dataset_path(),"JPEGImages"))
@@ -359,8 +352,10 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
         print("lc 迁移")
         sorted_transfer_list=get_lc_list(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag)
     elif select_strategy==Strategy.dt_t_strategy.value:
+        print("域分类器 迁移目标域 dc-t")
         sorted_transfer_list=target_list
     elif select_strategy==Strategy.dt_t_lc_strategy.value:
+        print("域分类器dc-t +lc ")
         l1=get_lc_list(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag)
         l2=target_list
         sorted_dic = {}
@@ -380,6 +375,7 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
             sorted_transfer_list.append(item[0])
 
     elif select_strategy==Strategy.dt_t_s_strategy.value:
+        print("域分类器 移除目标域并且迁移源域 dc-t-s")
         sorted_transfer_list=target_list
         sorted_remove_list=source_list
     else:
