@@ -1,6 +1,7 @@
 from __future__ import absolute_import, print_function
 
 import os
+import shutil
 import pickle
 import subprocess
 import uuid
@@ -512,35 +513,39 @@ class watercolor(imdb):
         return self.get_detection_result(all_boxes)
 
 
-    def add_datas_from_target(self,l,ratio,model_epoch,st_ratio):
-        #挑选的数目 :0.05 *图片数目
-        select_num=int(ratio*len(self.image_index))
-
+    def add_datas_from_target(self,l,max_transfer_num,model_epoch,st_ratio):
+        select_num=min(len(l),max_transfer_num)
         temp_dic=super().get_add_character_dic(st_ratio)
-        num=0
-        for item in l:
-            img=item
-            xml=item.split('.')[0]+".xml"
-            #判断是否已经添加
-            if os.path.exists(os.path.join(self._source_data_path, "Annotations",xml)):
-                continue
-
+        if select_num<len(l):
+            remain_l=l[select_num:]
+        else:
+            remain_l=[]
+        for i in range(0,select_num):
+            img=l[i]+".jpg"
+            xml=l[i]+".xml"
+            #一定不会存在
+            assert os.path.exists(os.path.join(self._source_data_path, "Annotations",xml))==False
             for i in range(st_ratio):
                 img_path=os.path.join(self._devkit_path,"JPEGImages",img)
                 xml_path=os.path.join(self._devkit_path,"Annotations",xml)
                 source_path=os.path.join(self._source_data_path)
                 EH.data_enhance(img=img_path, xml=xml_path, type=i%5, addcharacter=temp_dic[i], save_path=source_path)
-            num+=1
+        print("transfer finished!,transfered {} target data".format(select_num))
 
-            if num>=select_num:
-                break
-        print("transfer finished!,transfered {} target data".format(num*st_ratio))
-
+        #remove from target domain->change the txt->renew txt
+        train_txt_file=os.path.join(self._devkit_path,"ImageSets","Main","train.txt")
+        trainval_txt_file=os.path.join(self._devkit_path,"ImageSets","Main","train.txt")
+        remain_l.sort()
+        with open(train_txt_file,'w') as f:
+            for item in remain_l:
+                f.write(item+"\n")
+        shutil.copyfile(train_txt_file,trainval_txt_file)
         #写入记录
         with open(os.path.join(self._devkit_path,"transfer_data_record.txt"),'a') as f:
-            f.write("epoch {} finished ,then  transfered {} imgs and xmls \n".format(model_epoch,num*st_ratio))
+            f.write("epoch {} finished ,then  transfered {} imgs and xmls \n".format(model_epoch,select_num))
         #更新源域txt
         RNtool.gettxt(self._source_data_path,1)
+
 
     def remove_datas_from_source(self,l):
         for i in range(0,0.1*len(l)):  #默认剔除当前10%

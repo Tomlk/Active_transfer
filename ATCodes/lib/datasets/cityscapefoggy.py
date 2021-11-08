@@ -2,6 +2,7 @@ from __future__ import absolute_import, print_function
 
 import os
 import pickle
+import shutil
 import subprocess
 import uuid
 import xml.etree.ElementTree as ET
@@ -451,6 +452,7 @@ class cityscapefoggy(imdb):
         print("Recompute with `./tools/reval.py --matlab ...` for your paper.")
         print("-- Thanks, The Management")
         print("--------------------------------------------------------------")
+        return np.mean(aps)
 
     def _do_matlab_eval(self, output_dir="output"):
         print("-----------------------------------------------------")
@@ -468,39 +470,43 @@ class cityscapefoggy(imdb):
 
     def evaluate_detections(self, all_boxes,epoch_index):
         self._write_voc_results_file(all_boxes)
-        self._do_python_eval(epoch_index)    # 计算 map
+        map=self._do_python_eval(epoch_index)    # 计算 map
+        return map
 
     def get_lc_sorted_list(self,all_boxes):
         return self.get_detection_result(all_boxes)
 
 
-    def add_datas_from_target(self,l,ratio,model_epoch,st_ratio):
-        #挑选的数目 :0.05 *图片数目
-        select_num=int(ratio*len(self.image_index))
-
+    def add_datas_from_target(self,l,max_transfer_num,model_epoch,st_ratio):
+        select_num=min(len(l),max_transfer_num)
         temp_dic=super().get_add_character_dic(st_ratio)
-        num=0
-        for item in l:
-            img=item
-            xml=item.split('.')[0]+".xml"
-            #判断是否已经添加
-            if os.path.exists(os.path.join(self._source_data_path, "Annotations",xml)):
-                continue
-
+        if select_num<len(l):
+            remain_l=l[select_num:]
+        else:
+            remain_l=[]
+        for i in range(0,select_num):
+            img=l[i]+".jpg"
+            xml=l[i]+".xml"
+            #一定不会存在
+            assert os.path.exists(os.path.join(self._source_data_path, "Annotations",xml))==False
             for i in range(st_ratio):
                 img_path=os.path.join(self._devkit_path,"JPEGImages",img)
                 xml_path=os.path.join(self._devkit_path,"Annotations",xml)
                 source_path=os.path.join(self._source_data_path)
                 EH.data_enhance(img=img_path, xml=xml_path, type=i%5, addcharacter=temp_dic[i], save_path=source_path)
-            num+=1
+        print("transfer finished!,transfered {} target data".format(select_num))
 
-            if num>=select_num:
-                break
-        print("transfer finished!,transfered {} target data".format(num*st_ratio))
-
+        #remove from target domain->change the txt->renew txt
+        train_txt_file=os.path.join(self._devkit_path,"ImageSets","Main","train.txt")
+        trainval_txt_file=os.path.join(self._devkit_path,"ImageSets","Main","train.txt")
+        remain_l.sort()
+        with open(train_txt_file,'w') as f:
+            for item in remain_l:
+                f.write(item+"\n")
+        shutil.copyfile(train_txt_file,trainval_txt_file)
         #写入记录
         with open(os.path.join(self._devkit_path,"transfer_data_record.txt"),'a') as f:
-            f.write("epoch {} finished ,then  transfered {} imgs and xmls \n".format(model_epoch,num*st_ratio))
+            f.write("epoch {} finished ,then  transfered {} imgs and xmls \n".format(model_epoch,select_num))
         #更新源域txt
         RNtool.gettxt(self._source_data_path,1)
 

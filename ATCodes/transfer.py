@@ -43,11 +43,14 @@ from lib.active_tools.strategy_enum import Strategy
 from lib.active_tools.chooseStrategy import uncertain_sample
 
 
-def get_random_list(img_dir):
-    random_list = CS.random_sample(img_dir)
+def get_random_list(train_txt_path):
     l=[]
-    for item in random_list:
-        l.append(item.split('/')[-1])
+    with open(train_txt_path,'r') as f:
+        for line in f.readlines():
+            line=line.strip('\n')
+            l.append(line)
+    import random
+    random.shuffle(l)
     return l
 
 
@@ -259,6 +262,7 @@ def get_lc_list(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnosti
 
     for i in range(len(sorted_list)):
         sorted_list[i] = (sorted_list[i].split("/"))[-1]
+        sorted_list[i]=sorted_list[i].split(".")[0]
 
     return sorted_list
 
@@ -349,7 +353,7 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
 
     if select_strategy==Strategy.random_strategy.value: #random
         print("random 迁移")
-        sorted_transfer_list=get_random_list(os.path.join(imdb.get_dataset_path(),"JPEGImages"))
+        sorted_transfer_list=get_random_list(os.path.join(imdb.get_dataset_path(),"ImageSets","Main","train.txt"))
     elif select_strategy==Strategy.lc_strategy.value:
         #加载最新模型计算不确定度
         print("lc 迁移")

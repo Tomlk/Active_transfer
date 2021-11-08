@@ -35,7 +35,6 @@ from roi_da_data_layer.roibatchLoader import roibatchLoader
 from roi_da_data_layer.roidb import combined_roidb
 from torch.autograd import Variable
 from torch.utils.data.sampler import Sampler
-import da_test_net
 
 import active_tools.chooseStrategy as CS
 # from domain_tools.domain_classifier_util import Domain_classifier
@@ -436,13 +435,15 @@ def model_loader_tool(net_name,s_imdb,pretrained_path,class_agnostic,lc,gc,lr,ar
     load_name = os.path.join(model_dir, current_model)
     print("loading checkpoint %s" % (load_name))
     checkpoint = torch.load(load_name)
+    args.session=checkpoint["session"]
+    args.start_epoch=checkpoint["epoch"]
     fasterRCNN.load_state_dict(checkpoint["model"])
     optimizer.load_state_dict(checkpoint["optimizer"])
-
+    #lr初始化
     for param_group in optimizer.param_groups:
-        param_group["lr"] = args.lr         #模型lr 初始化 ，后面再衰减
+        param_group["lr"]=args.lr
+    lr=optimizer.param_groups[0]["lr"]
 
-    lr = optimizer.param_groups[0]["lr"]
     if "pooling_mode" in checkpoint.keys():
         cfg.POOLING_MODE = checkpoint["pooling_mode"]
     print("loaded checkpoint %s" % (load_name))
@@ -587,13 +588,16 @@ if __name__ == "__main__":
         # 5 训练
         iters_per_epoch = max(int(s_train_size / (args.batch_size)), int(t_train_size / args.batch_size))
 
-        save_epoch=model_epoch+1
-        for epoch in range(1, args.round_epoch+1):
+        save_epoch=args.start_epoch+1
+
+        max_mAP=0
+
+        for epoch in range(1, 6):
             # setting to train mode
             fasterRCNN.train()
             loss_temp = 0
             start = time.time()
-            if epoch % (args.round_epoch/2+1) == 0:
+            if epoch % 4 == 0:
                 adjust_learning_rate(optimizer, args.lr_decay_gamma)
                 lr *= args.lr_decay_gamma
 
@@ -676,10 +680,8 @@ if __name__ == "__main__":
                 dloss_t = 0.5 * FL(out_d, domain_t)
                 # local alignment loss
                 dloss_t_p = 0.5 * torch.mean((1 - out_d_pixel) ** 2)
-                if args.dataset == "sim10k":
-                    loss += (dloss_s + dloss_t + dloss_s_p + dloss_t_p) * args.eta
-                else:
-                    loss += dloss_s + dloss_t + dloss_s_p + dloss_t_p
+
+                loss += dloss_s + dloss_t + dloss_s_p + dloss_t_p
 
                 loss += (source_ins_da + target_ins_da) * args.instance_da_eta
 
@@ -734,7 +736,8 @@ if __name__ == "__main__":
                     )
 
                     loss_temp = 0
-                    start = time.time()
+
+            temp_save_name=os.path.join("./tempmodel","temp_model.pth")
             save_name = os.path.join(
                 output_dir, "{}.pth".format(args.dataset + "_" + str(save_epoch)),
             )
@@ -747,7 +750,23 @@ if __name__ == "__main__":
                     "pooling_mode": cfg.POOLING_MODE,
                     "class_agnostic": args.class_agnostic,
                 },
-                save_name,
+                temp_save_name,
             )
             print("save model: {}".format(save_name))
-            do_calculate_mAP(args.dataset,args.gpu_id,args.cuda,args.net,args.class_agnostic,args.lc,args.gc)
+            mAP=do_calculate_mAP(args.dataset,args.gpu_id,args.cuda,args.net,args.class_agnostic,args.lc,args.gc,temp_save_name)
+            if mAP>max_mAP:
+                save_checkpoint(
+                    {
+                        "session": args.session,
+                        "epoch": save_epoch,
+                        "model": fasterRCNN.state_dict(),
+                        "optimizer": optimizer.state_dict(),
+                        "pooling_mode": cfg.POOLING_MODE,
+                        "class_agnostic": args.class_agnostic,
+                    },
+                    save_name,
+                )
+                max_mAP=mAP
+
+
+

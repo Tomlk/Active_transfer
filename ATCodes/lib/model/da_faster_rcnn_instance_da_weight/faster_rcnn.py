@@ -81,7 +81,7 @@ class _fasterRCNN(nn.Module):
         num_boxes = num_boxes.data
 
         # feed image data to base model to obtain base feature map
-        base_feat1 = self.RCNN_base1(im_data)
+        base_feat1 = self.RCNN_base1(im_data) #第一套卷积之后的结果 作用局部域分类器
         if self.lc:
             d_pixel, _ = self.netD_pixel(grad_reverse(base_feat1, lambd=eta))
             # print(d_pixel)
@@ -90,7 +90,7 @@ class _fasterRCNN(nn.Module):
                 _, feat_pixel = self.netD_pixel(base_feat1.detach())
         else:
             d_pixel = self.netD_pixel(grad_reverse(base_feat1, lambd=eta))
-        base_feat = self.RCNN_base2(base_feat1)
+        base_feat = self.RCNN_base2(base_feat1) #第二套卷积之后，作用全局域分类器
         if self.gc:
             domain_p, _ = self.netD(grad_reverse(base_feat, lambd=eta))
             # if target:

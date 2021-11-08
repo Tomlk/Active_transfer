@@ -110,7 +110,7 @@ class imdb(object):
         """
         raise NotImplementedError
 
-    def add_datas_from_target(self,l,ratio=0.1,epoch_index=12,st_ratio=1):
+    def add_datas_from_target(self,l,max_transfer_num,epoch_index=12,st_ratio=1):
         raise NotImplementedError
     def remove_datas_from_source(self,l):
         raise NotImplementedError
