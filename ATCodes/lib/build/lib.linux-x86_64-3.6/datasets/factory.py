@@ -10,20 +10,29 @@ from __future__ import absolute_import, division, print_function
 
 import numpy as np
 from datasets.cityscape import cityscape
+from datasets.cityscapefoggy import cityscapefoggy
 from datasets.cityscapes_car import cityscapes_car
 from datasets.clipart import clipart
+from datasets.bdddaytime8 import bdddaytime8
+from datasets.bdddaytime10 import bdddaytime10
+from datasets.bddnight10 import bddnight10
+from datasets.sim10k import sim10k
+from datasets.cityscape10k import cityscape10k
+
 from datasets.coco import coco
 from datasets.imagenet import imagenet
 from datasets.pascal_voc import pascal_voc
 from datasets.pascal_voc_water import pascal_voc_water
 from datasets.rpc import rpc
 from datasets.rpc_fake import rpc_fake
-from datasets.sim10k_coco import sim10k
 from datasets.vg import vg
-from datasets.water import water
+# from datasets.water import water
+from datasets.watercolor import watercolor
 
 __sets = {}
 
+print("sets:")
+print(__sets)
 
 # Set up voc_<year>_<split>
 for year in ["2007", "2012"]:
@@ -42,9 +51,45 @@ for year in ["2007"]:
         __sets[name] = lambda split=split: clipart(split, year)
 
 for year in ["2007"]:
-    for split in ["train", "test"]:
-        name = "water_{}".format(split)
-        __sets[name] = lambda split=split: water(split, year)
+    for split in ["trainval", "train", "test"]:
+        name="bdddaytime8_{}".format(split)
+        __sets[name]=lambda split=split:bdddaytime8(split,year)
+
+for year in ["2007"]:
+    for split in ["trainval", "train", "test"]:
+        name="bdddaytime10_{}".format(split)
+        __sets[name]=lambda split=split:bdddaytime10(split,year)
+
+for year in ["2007"]:
+    for split in ["trainval","train","test"]:
+        name="bddnight10_{}".format(split)
+        __sets[name]=lambda split=split:bddnight10(split,year)
+
+
+for year in ["2007"]:
+    for split in ["trainval", "test"]:
+        name = "watercolor_{}".format(split)
+        __sets[name] = lambda split=split: watercolor(split, year)
+
+for year in ["2007", "2012"]:
+    for split in ["trainval", "test"]:
+        name = "cityscape_{}".format(split)
+        __sets[name] = lambda split=split, year=year: cityscape(split, year)
+
+for year in ["2007", "2012"]:
+    for split in ["trainval", "test"]:
+        name = "cityscapefoggy_{}".format(split)
+        __sets[name] = lambda split=split, year=year: cityscapefoggy(split, year)
+
+for year in ["2007", "2012"]:
+    for split in ["trainval", "test","train"]:
+        name = "sim10k_{}".format(split)
+        __sets[name] = lambda split=split, year=year: sim10k(split, year)
+
+for year in ["2007", "2012"]:
+    for split in ["trainval", "test","train"]:
+        name = "cityscape10k_{}".format(split)
+        __sets[name] = lambda split=split, year=year: cityscape10k(split, year)
 
 for year in ["2007"]:
     for split in ["val", "test"]:
@@ -58,10 +103,6 @@ for year in ["2007"]:
         name = "rpc_fake_{}".format(split)
         __sets[name] = lambda split=split: rpc_fake(split, year)
 
-for year in ["2007", "2012"]:
-    for split in ["train_s", "train_t", "train_all", "test_s", "test_t", "test_all"]:
-        name = "cityscape_{}_{}".format(year, split)
-        __sets[name] = lambda split=split, year=year: cityscape(split, year)
 
 # Set up coco_2014_<split>
 for year in ["2014"]:
@@ -81,11 +122,6 @@ for year in ["2015"]:
         name = "coco_{}_{}".format(year, split)
         __sets[name] = lambda split=split, year=year: coco(split, year)
 
-# Set up sim10k coco style and cityscapes coco style
-for year in ["2019"]:
-    for split in ["train", "val"]:
-        name = "sim10k_{}_{}".format(year, split)
-        __sets[name] = lambda split=split, year=year: sim10k(split, year)
 # Set up sim10k coco style and cityscapes coco style
 for year in ["2019"]:
     for split in ["train", "val"]:

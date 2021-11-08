@@ -42,11 +42,10 @@ import lib.model_tools.model_resource as MR
 
 
 
-def cal_and_write(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag,model_path=""):
-    if model_path!="":
+def cal_and_write(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag,current_model="",model_epoch=""):
+    if current_model == "":
         model_dir=os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model")
-        model_path,model_epoch=MR.get_current_model(model_dir)
-        current_model=model_path
+        current_model,model_epoch=MR.get_current_model(model_dir)
     print(current_model)
 
     # initilize the network here.
@@ -250,7 +249,7 @@ def cal_and_write(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnos
 
 
 
-def do_calculate_mAP(dataset_name,gpu_id,cuda_flag,net,class_agnostic,lc,gc,model_path=""):
+def do_calculate_mAP(dataset_name,gpu_id,cuda_flag,net,class_agnostic,lc,gc,model_path="",model_epoch=""):
 
 
     if torch.cuda.is_available() and not cuda_flag:
@@ -332,7 +331,7 @@ def do_calculate_mAP(dataset_name,gpu_id,cuda_flag,net,class_agnostic,lc,gc,mode
 
     print("{:d} roidb entries".format(len(roidb)))
 
-    mAP=cal_and_write(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag,model_path)
+    mAP=cal_and_write(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag,model_path,model_epoch)
     return mAP
 
 

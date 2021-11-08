@@ -269,7 +269,7 @@ def get_lc_list(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnosti
 
 
 
-def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,target_list,cuda_flag,net,lc,gc,class_agnostic):
+def do_transfer(max_transfer_num,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,target_list,cuda_flag,net,lc,gc,class_agnostic):
     if torch.cuda.is_available() and not cuda_flag:
         print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
@@ -392,7 +392,7 @@ def do_transfer(ratio,s_t_ratio,dataset_name,gpu_id,select_strategy,source_list,
         imdb.remove_datas_from_source(sorted_remove_list)
 
     if len(sorted_transfer_list)>0:
-        imdb.add_datas_from_target(sorted_transfer_list,float(ratio),model_epoch,s_t_ratio)
+        imdb.add_datas_from_target(sorted_transfer_list,max_transfer_num,model_epoch,s_t_ratio)
 
 
 

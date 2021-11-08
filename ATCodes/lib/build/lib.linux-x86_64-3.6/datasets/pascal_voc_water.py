@@ -139,19 +139,19 @@ class pascal_voc_water(imdb):
         Return the database of ground-truth regions of interest.
         This function loads/saves from/to a cache file to speed up future calls.
         """
-        cache_file = os.path.join(self.cache_path, self.name + "_gt_roidb.pkl")
-        if os.path.exists(cache_file):
-            with open(cache_file, "rb") as fid:
-                roidb = pickle.load(fid)
-            print("{} gt roidb loaded from {}".format(self.name, cache_file))
-            return roidb
+        # cache_file = os.path.join(self.cache_path, self.name + "_gt_roidb.pkl")
+        # if os.path.exists(cache_file):
+        #     with open(cache_file, "rb") as fid:
+        #         roidb = pickle.load(fid)
+        #     print("{} gt roidb loaded from {}".format(self.name, cache_file))
+        #     return roidb
 
         # print(len(self._image_index))
         gt_roidb = [self._load_pascal_annotation(index) for index in self.image_index]
         #
-        with open(cache_file, "wb") as fid:
-            pickle.dump(gt_roidb, fid, pickle.HIGHEST_PROTOCOL)
-        print("wrote gt roidb to {}".format(cache_file))
+        # with open(cache_file, "wb") as fid:
+        #     pickle.dump(gt_roidb, fid, pickle.HIGHEST_PROTOCOL)
+        # print("wrote gt roidb to {}".format(cache_file))
 
         return gt_roidb
 
@@ -285,10 +285,14 @@ class pascal_voc_water(imdb):
         for ix, obj in enumerate(objs):
             bbox = obj.find("bndbox")
             # Make pixel indexes 0-based
-            x1 = float(bbox.find("xmin").text) - 1
-            y1 = float(bbox.find("ymin").text) - 1
-            x2 = float(bbox.find("xmax").text) - 1
-            y2 = float(bbox.find("ymax").text) - 1
+            # x1 = float(bbox.find("xmin").text) - 1
+            # y1 = float(bbox.find("ymin").text) - 1
+            # x2 = float(bbox.find("xmax").text) - 1
+            # y2 = float(bbox.find("ymax").text) - 1
+            x1 = int(float(bbox.find("xmin").text)) 
+            y1 = int(float(bbox.find("ymin").text))
+            x2 = int(float(bbox.find("xmax").text)) 
+            y2 = int(float(bbox.find("ymax").text)) 
 
             diffc = obj.find("difficult")
             difficult = 0 if diffc == None else int(diffc.text)

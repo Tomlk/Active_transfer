@@ -52,13 +52,13 @@ class cityscape(imdb):
         self._classes = (
             "__background__",  # always index 0
             "person",
-            # "rider",
+            "rider",
             "car",
-            # "truck",
-            # "bus",
-            # "train",
+            "truck",
+            "bus",
+            "train",
             "motorcycle",
-            # "bicycle",
+            "bicycle",
             #临时添加 用于测试
             # "traffic_sign",
             # "traffic_light",

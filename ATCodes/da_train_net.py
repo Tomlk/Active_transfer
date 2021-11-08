@@ -69,14 +69,6 @@ def parse_args():
         type=str,
     )
     parser.add_argument(
-        "--checkpoint_interval",
-        dest="checkpoint_interval",
-        help="number of iterations to save checkpoint",
-        default=1,
-        type=int,
-    )
-
-    parser.add_argument(
         "--save_dir",
         dest="save_dir",
         help="directory to save models",
@@ -250,6 +242,12 @@ def parse_args():
         "--first_not_transfer",dest="first_not_transfer",
         help="first_not_transfer",
         default=0,
+        type=int
+    )
+    '''5% '''
+    parser.add_argument(
+        "--max_transfer_num",dest="max_transfer_num",
+        help="max_transfer_num",
         type=int
     )
     args = parser.parse_args()
@@ -432,7 +430,7 @@ def model_loader_tool(net_name,s_imdb,pretrained_path,class_agnostic,lc,gc,lr,ar
 
     # 加载模型
     current_model,model_epoch=MR.get_current_model(model_dir)
-    load_name = os.path.join(model_dir, current_model)
+    load_name = current_model
     print("loading checkpoint %s" % (load_name))
     checkpoint = torch.load(load_name)
     args.session=checkpoint["session"]
@@ -575,7 +573,7 @@ if __name__ == "__main__":
             # 3 迁移
             print("迁移...")
             source_list,target_list=DomainTool.get_source_target_list(args.select_strategy,fasterRCNN, dataset_s,dataset_t,gt_boxes,num_boxes)
-            do_transfer(0.05,args.st_ratio,args.dataset,args.gpu_id,args.select_strategy,source_list,target_list,args.cuda,args.net,args.lc,args.gc,args.class_agnostic)
+            do_transfer(args.max_transfer_num,args.st_ratio,args.dataset,args.gpu_id,args.select_strategy,source_list,target_list,args.cuda,args.net,args.lc,args.gc,args.class_agnostic)
         else:
             #已迁移过，不用再迁移
             print("已迁移过，不用再迁移....")
@@ -587,7 +585,7 @@ if __name__ == "__main__":
 
         # 5 训练
         iters_per_epoch = max(int(s_train_size / (args.batch_size)), int(t_train_size / args.batch_size))
-
+        # iters_per_epoch = 100 #test
         save_epoch=args.start_epoch+1
 
         max_mAP=0
@@ -752,8 +750,8 @@ if __name__ == "__main__":
                 },
                 temp_save_name,
             )
-            print("save model: {}".format(save_name))
-            mAP=do_calculate_mAP(args.dataset,args.gpu_id,args.cuda,args.net,args.class_agnostic,args.lc,args.gc,temp_save_name)
+            print("save_epoch:{}".format(save_epoch))
+            mAP=do_calculate_mAP(args.dataset,args.gpu_id,args.cuda,args.net,args.class_agnostic,args.lc,args.gc,temp_save_name,save_epoch)
             if mAP>max_mAP:
                 save_checkpoint(
                     {
@@ -766,7 +764,9 @@ if __name__ == "__main__":
                     },
                     save_name,
                 )
+                print("save model: {}".format(save_name))
                 max_mAP=mAP
+            print("epoch:{}.mAP:{}.max_mAP:{}".format(epoch,mAP,max_mAP))
 
 
 
