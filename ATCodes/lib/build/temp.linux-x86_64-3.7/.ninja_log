@@ -1,0 +1,13 @@
+# ninja log v5
+1	11603	1636430592541733670	/home/jiang/ATL/AT_CODES_new/lib/build/temp.linux-x86_64-3.7/home/jiang/ATL/AT_CODES_new/lib/model/csrc/cuda/ROIPool_cuda.o	9356210fda768baa
+1	11884	1636430592825734282	/home/jiang/ATL/AT_CODES_new/lib/build/temp.linux-x86_64-3.7/home/jiang/ATL/AT_CODES_new/lib/model/csrc/cuda/ROIAlign_cuda.o	fb0ec9b39c3a70f5
+1	13049	1636430593989736792	/home/jiang/ATL/AT_CODES_new/lib/build/temp.linux-x86_64-3.7/home/jiang/ATL/AT_CODES_new/lib/model/csrc/cuda/nms.o	63b87af665867b
+0	17719	1636430598661746900	/home/jiang/ATL/AT_CODES_new/lib/build/temp.linux-x86_64-3.7/home/jiang/ATL/AT_CODES_new/lib/model/csrc/cpu/ROIAlign_cpu.o	8ef9d2ef77198b47
+0	18319	1636430599261748202	/home/jiang/ATL/AT_CODES_new/lib/build/temp.linux-x86_64-3.7/home/jiang/ATL/AT_CODES_new/lib/model/csrc/cpu/nms_cpu.o	c29d88f6b2a8ea0
+0	20112	1636430601053752097	/home/jiang/ATL/AT_CODES_new/lib/build/temp.linux-x86_64-3.7/home/jiang/ATL/AT_CODES_new/lib/model/csrc/vision.o	7a558ead9b51c070
+4	11323	1636430612925778101	/home/jiang/ATL/AT_CODES_new/lib/build/temp.linux-x86_64-3.7/home/jiang/ATL/AT_CODES_new/lib/model/csrc/cuda/nms.o	d596ce90690bb659
+4	11686	1636430613289778904	/home/jiang/ATL/AT_CODES_new/lib/build/temp.linux-x86_64-3.7/home/jiang/ATL/AT_CODES_new/lib/model/csrc/cuda/ROIPool_cuda.o	fa58f56e06398262
+4	12739	1636430614341781225	/home/jiang/ATL/AT_CODES_new/lib/build/temp.linux-x86_64-3.7/home/jiang/ATL/AT_CODES_new/lib/model/csrc/cuda/ROIAlign_cuda.o	241e6385d2609bb7
+4	16884	1636430618489790407	/home/jiang/ATL/AT_CODES_new/lib/build/temp.linux-x86_64-3.7/home/jiang/ATL/AT_CODES_new/lib/model/csrc/cpu/ROIAlign_cpu.o	ddbf259257ec9f85
+4	17239	1636430618841791188	/home/jiang/ATL/AT_CODES_new/lib/build/temp.linux-x86_64-3.7/home/jiang/ATL/AT_CODES_new/lib/model/csrc/cpu/nms_cpu.o	78a0b2f9a71e26f8
+3	19169	1636430620773795481	/home/jiang/ATL/AT_CODES_new/lib/build/temp.linux-x86_64-3.7/home/jiang/ATL/AT_CODES_new/lib/model/csrc/vision.o	81a897a4e24f019c
