@@ -498,7 +498,7 @@ class cityscapefoggy(imdb):
 
         #remove from target domain->change the txt->renew txt
         train_txt_file=os.path.join(self._devkit_path,"ImageSets","Main","train.txt")
-        trainval_txt_file=os.path.join(self._devkit_path,"ImageSets","Main","train.txt")
+        trainval_txt_file=os.path.join(self._devkit_path,"ImageSets","Main","trainval.txt")
         remain_l.sort()
         with open(train_txt_file,'w') as f:
             for item in remain_l:

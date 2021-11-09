@@ -11,6 +11,8 @@ round_num=20
 
 st_ratio=3 #enhance
 
+lr=0.0001
+
 max_transfer_num=122
 # st_ratio=1 #not enhance
 
@@ -24,4 +26,4 @@ max_transfer_num=122
 
 
 #at 0
-python da_train_net.py --cuda --dataset ${dataset} --net ${net} --save_dir ${save_dir} --pretrained_path ${pretrained_path} --gc --lc --da_use_contex --round_num ${round_num} --gpu_id ${GPUID} --st_ratio ${st_ratio} --select_strategy 0 --max_transfer_num ${max_transfer_num} 
+python da_train_net.py --cuda --dataset ${dataset} --net ${net} --save_dir ${save_dir} --pretrained_path ${pretrained_path} --gc --lc --lr ${lr} --da_use_contex --round_num ${round_num} --gpu_id ${GPUID} --st_ratio ${st_ratio} --select_strategy 0 --max_transfer_num ${max_transfer_num}

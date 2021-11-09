@@ -590,7 +590,7 @@ if __name__ == "__main__":
 
         max_mAP=0
 
-        for epoch in range(1, 6):
+        for epoch in range(1, 7):
             # setting to train mode
             fasterRCNN.train()
             loss_temp = 0

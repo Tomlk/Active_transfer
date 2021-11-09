@@ -55,8 +55,7 @@ def get_random_list(train_txt_path):
 
 
 def get_lc_list(dataset_name,net,imdb,roidb,ratio_list,ratio_index,class_agnostic,lc,gc,cuda_flag):
-    model_dir=os.listdir(os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model"))
-    current_model,model_epoch=MR.get_current_model(model_dir)
+    current_model,model_epoch=MR.get_current_model(os.path.join("./data/experiments/SW_Faster_ICR_CCR",dataset_name,"model"))
     print(current_model)
 
     # initilize the network here.
