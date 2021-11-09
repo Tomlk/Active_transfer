@@ -590,12 +590,12 @@ if __name__ == "__main__":
 
         max_mAP=0
 
-        for epoch in range(1, 7):
+        for epoch in range(1, 8):
             # setting to train mode
             fasterRCNN.train()
             loss_temp = 0
             start = time.time()
-            if epoch % 4 == 0:
+            if epoch==4 or epoch==6:
                 adjust_learning_rate(optimizer, args.lr_decay_gamma)
                 lr *= args.lr_decay_gamma
 
