@@ -256,7 +256,7 @@ class GradReverse(Function):
 
 
 def grad_reverse(x, lambd=1.0):
-    return GradReverse(lambd).forward(x)
+    return GradReverse(lambd)(x)
 
 
 class EFocalLoss(nn.Module):

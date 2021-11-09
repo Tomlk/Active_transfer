@@ -584,8 +584,8 @@ if __name__ == "__main__":
             data_loader_tools(args.s_imdb_name,args.t_imdb_name,args.batch_size,args.num_workers,args.cuda)
 
         # 5 训练
-        # iters_per_epoch = max(int(s_train_size / (args.batch_size)), int(t_train_size / args.batch_size))
-        iters_per_epoch = 100 #test
+        iters_per_epoch = max(int(s_train_size / (args.batch_size)), int(t_train_size / args.batch_size))
+        # iters_per_epoch = 100 #test
         save_epoch=args.start_epoch+1
 
         max_mAP=0
@@ -614,11 +614,11 @@ if __name__ == "__main__":
                     data_t = next(data_iter_t)
 
                 # put source data into variable
-                im_data.resize_(data_s[0].size()).copy_(data_s[0])
-                im_info.resize_(data_s[1].size()).copy_(data_s[1])
-                im_cls_lb.resize_(data_s[2].size()).copy_(data_s[2])
-                gt_boxes.resize_(data_s[3].size()).copy_(data_s[3])
-                num_boxes.resize_(data_s[4].size()).copy_(data_s[4])
+                im_data.data.resize_(data_s[0].size()).copy_(data_s[0])
+                im_info.data.resize_(data_s[1].size()).copy_(data_s[1])
+                im_cls_lb.data.resize_(data_s[2].size()).copy_(data_s[2])
+                gt_boxes.data.resize_(data_s[3].size()).copy_(data_s[3])
+                num_boxes.data.resize_(data_s[4].size()).copy_(data_s[4])
 
                 fasterRCNN.zero_grad()
                 (
@@ -659,11 +659,11 @@ if __name__ == "__main__":
                 dloss_s_p = 0.5 * torch.mean(out_d_pixel ** 2)
 
                 # put target data into variable
-                im_data.resize_(data_t[0].size()).copy_(data_t[0])
-                im_info.resize_(data_t[1].size()).copy_(data_t[1])
+                im_data.data.resize_(data_t[0].size()).copy_(data_t[0])
+                im_info.data.resize_(data_t[1].size()).copy_(data_t[1])
                 # gt is empty
-                gt_boxes.resize_(1, 1, 5).zero_()
-                num_boxes.resize_(1).zero_()
+                gt_boxes.data.resize_(1, 1, 5).zero_()
+                num_boxes.data.resize_(1).zero_()
                 out_d_pixel, out_d, target_ins_da = fasterRCNN(
                     im_data,
                     im_info,
