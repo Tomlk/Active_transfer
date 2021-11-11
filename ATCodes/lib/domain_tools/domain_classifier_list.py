@@ -26,8 +26,8 @@ def get_source_target_list(select_strategy,faster_rcnn: _fasterRCNN, dataset_s: 
 
 def get_sorted_list(faster_rcnn: _fasterRCNN, dataset: roibatchLoader,gt_boxes,num_boxes,target_flag):
     DC= Domain_classifier(faster_rcnn, dataset)
-    gt_boxes.data.resize_(1, 1, 5).zero_()
-    num_boxes.data.resize_(1).zero_()
+    gt_boxes.resize_(1, 1, 5).zero_()
+    num_boxes.resize_(1).zero_()
     DC.set_args(
         num_boxes,
         gt_boxes,
