@@ -48,7 +48,7 @@ print(sys.path)
 def write_mAP_to_file(mAP,round_num,dataset):
     import time
     xml_path=os.path.join("./data","datasets",dataset,"mAP_result.txt")
-    with open(xml_path,'a+') as f:
+    with open(xml_path,'a') as f:
         f.write("round:{}\n".format(round_num))
         str_cur_time=time.strftime('%Y.%m.%d %H:%M:%S ',time.localtime(time.time()))
         f.write("map:{}.  time:{}. \n".format(mAP,str_cur_time))
