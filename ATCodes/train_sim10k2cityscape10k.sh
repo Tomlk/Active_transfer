@@ -1,7 +1,6 @@
 #!/bin/bash
-
-dataset="cityscapefoggy"
-save_dir="./data/experiments/SW_Faster_ICR_CCR/cityscapefoggy/model"
+dataset="cityscape10k"
+save_dir="./data/experiments/SW_Faster_ICR_CCR/cityscape10k/model"
 pretrained_path="./data/pretrained_model/vgg16_caffe.pth"
 net="vgg16"
 #checkpoint_interval=4
@@ -9,11 +8,11 @@ GPUID=0
 
 round_num=20
 
-st_ratio=3 #enhance
+st_ratio=10 #enhance
 
 lr=0.0001
 
-max_transfer_num=122
+max_transfer_num=99
 # st_ratio=1 #not enhance
 
 

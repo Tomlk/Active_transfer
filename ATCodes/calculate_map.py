@@ -290,17 +290,6 @@ def do_calculate_mAP(dataset_name,gpu_id,cuda_flag,net,class_agnostic,lc,gc,mode
             "MAX_NUM_GT_BOXES",
             "20",
         ]
-    if dataset_name == "sim10k":
-        args_t_imdbtest_name = "sim10k_test"
-        args_set_cfgs = [
-            "ANCHOR_SCALES",
-            "[8,16,32]",
-            "ANCHOR_RATIOS",
-            "[0.5,1,2]",
-            "MAX_NUM_GT_BOXES",
-            "30",
-        ]
-
     elif dataset_name=="cityscape10k":
         args_t_imdbtest_name = "cityscape10k_test"
         args_set_cfgs = [

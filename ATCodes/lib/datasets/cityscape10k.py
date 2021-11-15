@@ -377,7 +377,7 @@ class cityscape10k(imdb):
                             )
                         )
 
-    def _do_python_eval(self, output_dir,epoch_index):
+    def _do_python_eval(self,epoch_index):
         # annopath = os.path.join(
         #     self._devkit_path, "VOC" + self._year, "Annotations", "{:s}.xml"
         # )
@@ -395,8 +395,8 @@ class cityscape10k(imdb):
         # The PASCAL VOC metric changed in 2010
         use_07_metric = True if int(self._year) < 2010 else False
         print("VOC07 metric? " + ("Yes" if use_07_metric else "No"))
-        if not os.path.isdir(output_dir):
-            os.mkdir(output_dir)
+        # if not os.path.isdir(output_dir):
+        #     os.mkdir(output_dir)
         classaps=[]
         for i, cls in enumerate(self._classes):
             if cls == "__background__":
@@ -414,8 +414,8 @@ class cityscape10k(imdb):
             aps += [ap]
             classaps.append([cls,ap])
             print("AP for {} = {:.4f}".format(cls, ap))
-            with open(os.path.join(output_dir, cls + "_pr.pkl"), "wb") as f:
-                pickle.dump({"rec": rec, "prec": prec, "ap": ap}, f)
+            # with open(os.path.join(output_dir, cls + "_pr.pkl"), "wb") as f:
+            #     pickle.dump({"rec": rec, "prec": prec, "ap": ap}, f)
         print("Mean AP = {:.4f}".format(np.mean(aps)))
         classaps.append(["mAP",np.mean(aps)])
         #writetoresult
@@ -436,6 +436,7 @@ class cityscape10k(imdb):
         print("Recompute with `./tools/reval.py --matlab ...` for your paper.")
         print("-- Thanks, The Management")
         print("--------------------------------------------------------------")
+        return np.mean(aps)
 
     def _do_matlab_eval(self, output_dir="output"):
         print("-----------------------------------------------------")
@@ -453,7 +454,12 @@ class cityscape10k(imdb):
 
     def evaluate_detections(self, all_boxes,epoch_index):
         self._write_voc_results_file(all_boxes)
-        self._do_python_eval(epoch_index)    # 计算 map
+        map=self._do_python_eval(epoch_index)    # 计算 map
+        return map
+
+    def get_lc_sorted_list(self,all_boxes):
+        return self.get_detection_result(all_boxes)
+
 
     def add_datas_from_target(self,l,max_transfer_num,model_epoch,st_ratio):
         select_num=min(len(l),max_transfer_num)
@@ -476,7 +482,7 @@ class cityscape10k(imdb):
 
         #remove from target domain->change the txt->renew txt
         train_txt_file=os.path.join(self._devkit_path,"ImageSets","Main","train.txt")
-        trainval_txt_file = os.path.join(self._devkit_path, "ImageSets", "Main", "trainval.txt")
+        trainval_txt_file=os.path.join(self._devkit_path,"ImageSets","Main","trainval.txt")
         remain_l.sort()
         with open(train_txt_file,'w') as f:
             for item in remain_l:
@@ -487,8 +493,6 @@ class cityscape10k(imdb):
             f.write("epoch {} finished ,then  transfered {} imgs and xmls \n".format(model_epoch,select_num))
         #更新源域txt
         RNtool.gettxt(self._source_data_path,1)
-
-
 
     def remove_datas_from_source(self,l):
         for i in range(0,0.1*len(l)):  #默认剔除当前10%
@@ -502,6 +506,7 @@ class cityscape10k(imdb):
                 os.remove(xml_path)
         #更新源域txt
         RNtool.gettxt(self._source_data_path,1)
+
 
     def competition_mode(self, on):
         if on:

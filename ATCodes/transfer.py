@@ -308,17 +308,6 @@ def do_transfer(max_transfer_num,s_t_ratio,dataset_name,gpu_id,select_strategy,s
             "MAX_NUM_GT_BOXES",
             "20",
         ]
-    if dataset_name == "sim10k":
-        print("loading our dataset...........")
-        args_t_imdb_name = "sim10k_trainval"
-        args_set_cfgs = [
-            "ANCHOR_SCALES",
-            "[8,16,32]",
-            "ANCHOR_RATIOS",
-            "[0.5,1,2]",
-            "MAX_NUM_GT_BOXES",
-            "30",
-        ]
     elif dataset_name=="cityscape10k":
         args_t_imdb_name = "cityscape10k_trainval"
         args_set_cfgs = [
