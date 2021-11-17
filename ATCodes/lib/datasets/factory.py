@@ -28,7 +28,7 @@ from datasets.rpc_fake import rpc_fake
 from datasets.vg import vg
 # from datasets.water import water
 from datasets.watercolor import watercolor
-
+from datasets.pascalvoc07 import pascalvoc07
 __sets = {}
 
 print("sets:")
@@ -85,6 +85,11 @@ for year in ["2007", "2012"]:
     for split in ["trainval", "test","train"]:
         name = "sim10k_{}".format(split)
         __sets[name] = lambda split=split, year=year: sim10k(split, year)
+
+for year in ["2007", "2012"]:
+    for split in ["trainval", "test","train"]:
+        name = "pascalvoc07_{}".format(split)
+        __sets[name] = lambda split=split, year=year: pascalvoc07(split, year)
 
 for year in ["2007", "2012"]:
     for split in ["trainval", "test","train"]:

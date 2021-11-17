@@ -474,7 +474,6 @@ if __name__ == "__main__":
     if args.dataset == "cityscapefoggy":
         print("loading our dataset...........")
         args.s_imdb_name = "cityscape_trainval"
-        args.s_imdbtest_name = "cityscape_test"
         args.t_imdb_name = "cityscapefoggy_trainval"
         args.t_imdbtest_name = "cityscapefoggy_test"
         args.set_cfgs = [
@@ -501,7 +500,7 @@ if __name__ == "__main__":
 
     elif args.dataset == "watercolor":
         print("loading our dataset...........")
-        args.s_imdb_name = "voc_water_2007_trainval+voc_water_2012_trainval"
+        args.s_imdb_name = "pascalvoc07_trainval"
         args.t_imdb_name = "watercolor_train"
         args.t_imdbtest_name = "watercolor_test"
         args.set_cfgs = [
@@ -515,7 +514,6 @@ if __name__ == "__main__":
     elif args.dataset=="cityscape10k":
         print("loading our dataset...........")
         args.s_imdb_name = "sim10k_trainval"
-        args.s_imdbtest_name = "sim10k_test"
         args.t_imdb_name = "cityscape10k_trainval"
         args.t_imdbtest_name = "cityscape10k_test"
         args.set_cfgs = [

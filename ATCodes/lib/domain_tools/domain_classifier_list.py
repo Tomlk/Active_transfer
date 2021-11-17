@@ -9,7 +9,7 @@ from domain_tools.domain_classifier_util import Domain_classifier
 def get_source_target_list(select_strategy,faster_rcnn: _fasterRCNN, dataset_s: roibatchLoader, dataset_t: roibatchLoader,gt_boxes,num_boxes):
     source_list=[]
     target_list=[]
-    if select_strategy==2:
+    if select_strategy==2 or select_strategy==3:
         target_list=get_sorted_list(faster_rcnn,dataset_t,gt_boxes,num_boxes,True)
     elif select_strategy==4 or select_strategy==5:
         target_list=get_sorted_list(faster_rcnn,dataset_t,gt_boxes,num_boxes,True)
