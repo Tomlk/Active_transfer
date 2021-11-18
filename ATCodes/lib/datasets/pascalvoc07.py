@@ -107,7 +107,6 @@ class pascalvoc07(imdb):
         image_path = os.path.join(
             self._data_path, "JPEGImages", index + self._image_ext
         )
-
         assert os.path.exists(image_path), "Path does not exist: {}".format(image_path)
         return image_path
 
@@ -123,47 +122,36 @@ class pascalvoc07(imdb):
         assert os.path.exists(image_set_file), "Path does not exist: {}".format(
             image_set_file
         )
-
-        # image_index = []
-        # print("*" * 50)
-        # print("image_set_file:", image_set_file)
-        # print("*" * 50)
-
-
-        # with open(image_set_file) as f:
-        #     for x in f.readlines():
-        #         if len(x) > 1:
-        #             image_index.append(x.strip())
-
         with open(image_set_file) as f:
             image_index = [x.strip() for x in f.readlines()]
+        count_box = [self._test_pascal_annotation(index) for index in image_index]
+        count_box = np.array(count_box)
+        image_index = np.array(image_index)
+        image_index = list(image_index[np.where(count_box > 0)])
+        # print(len(image_index))
         return image_index
 
     def _get_default_path(self):
         """
         Return the default path where PASCAL VOC is expected to be installed.
         """
-        return os.path.join(cfg.DATA_DIR, "pascalvoc07")
+        return os.path.join(cfg.DATA_DIR, "pascalvoc07")  # self._year)
 
     def gt_roidb(self):
         """
         Return the database of ground-truth regions of interest.
-
         This function loads/saves from/to a cache file to speed up future calls.
         """
-
-        #不存cache
-        # print("self.cache_path:",self.cache_path)
         # cache_file = os.path.join(self.cache_path, self.name + "_gt_roidb.pkl")
-        # print("cache_file:",cache_file)
         # if os.path.exists(cache_file):
         #     with open(cache_file, "rb") as fid:
         #         roidb = pickle.load(fid)
         #     print("{} gt roidb loaded from {}".format(self.name, cache_file))
         #     return roidb
 
+        # print(len(self._image_index))
         gt_roidb = [self._load_pascal_annotation(index) for index in self.image_index]
-
+        #
         # with open(cache_file, "wb") as fid:
         #     pickle.dump(gt_roidb, fid, pickle.HIGHEST_PROTOCOL)
         # print("wrote gt roidb to {}".format(cache_file))
@@ -174,7 +162,6 @@ class pascalvoc07(imdb):
         """
         Return the database of selective search regions of interest.
         Ground-truth ROIs are also included.
-
         This function loads/saves from/to a cache file to speed up future calls.
         """
         cache_file = os.path.join(
@@ -182,7 +169,7 @@ class pascalvoc07(imdb):
         )
 
         if os.path.exists(cache_file):
-            with open(cache_file, "rb") as fidf:
+            with open(cache_file, "rb") as fid:
                 roidb = pickle.load(fid)
             print("{} ss roidb loaded from {}".format(self.name, cache_file))
             return roidb
@@ -237,7 +224,105 @@ class pascalvoc07(imdb):
 
         return self.create_roidb_from_box_list(box_list, gt_roidb)
 
+    def _test_pascal_annotation(self, index):
+        """
+        Load image and bounding boxes info from XML file in the PASCAL VOC
+        format.
+        """
+        filename = os.path.join(self._data_path, "Annotations", index + ".xml")
+        tree = ET.parse(filename)
+        objs = tree.findall("object")
+        # if not self.config['use_diff']:
+        #     # Exclude the samples labeled as difficult
+        #     non_diff_objs = [
+        #         obj for obj in objs if int(obj.find('difficult').text) == 0]
+        #     # if len(non_diff_objs) != len(objs):
+        #     #     print 'Removed {} difficult objects'.format(
+        #     #         len(objs) - len(non_diff_objs))
+        #     objs = non_diff_objs
+        num_objs = len(objs)
+        count = 0
+        for ix, obj in enumerate(objs):
+            try:
+                cls = self._class_to_ind[obj.find("name").text.lower().strip()]
+                count += 1
+            except:
+                continue
+        return count
+
     def _load_pascal_annotation(self, index):
+        """
+        Load image and bounding boxes info from XML file in the PASCAL VOC
+        format.
+        """
+        filename = os.path.join(self._data_path, "Annotations", index + ".xml")
+        tree = ET.parse(filename)
+        objs = tree.findall("object")
+        # if not self.config['use_diff']:
+        #     # Exclude the samples labeled as difficult
+        #     non_diff_objs = [
+        #         obj for obj in objs if int(obj.find('difficult').text) == 0]
+        #     # if len(non_diff_objs) != len(objs):
+        #     #     print 'Removed {} difficult objects'.format(
+        #     #         len(objs) - len(non_diff_objs))
+        #     objs = non_diff_objs
+        num_objs = len(objs)
+
+        count = 0
+        for ix, obj in enumerate(objs):
+            try:
+                cls = self._class_to_ind[obj.find("name").text.lower().strip()]
+                count += 1
+            except:
+                continue
+        num_objs = count
+        boxes = np.zeros((num_objs, 4), dtype=np.uint16)
+        gt_classes = np.zeros((num_objs), dtype=np.int32)
+        overlaps = np.zeros((num_objs, self.num_classes), dtype=np.float32)
+        # "Seg" area for pascal is just the box area
+        seg_areas = np.zeros((num_objs), dtype=np.float32)
+        ishards = np.zeros((num_objs), dtype=np.int32)
+        num_objs = len(objs)
+        # Load object bounding boxes into a data frame.
+        count = 0
+        for ix, obj in enumerate(objs):
+            bbox = obj.find("bndbox")
+            # Make pixel indexes 0-based
+            # x1 = float(bbox.find("xmin").text) - 1
+            # y1 = float(bbox.find("ymin").text) - 1
+            # x2 = float(bbox.find("xmax").text) - 1
+            # y2 = float(bbox.find("ymax").text) - 1
+            x1 = int(float(bbox.find("xmin").text))
+            y1 = int(float(bbox.find("ymin").text))
+            x2 = int(float(bbox.find("xmax").text))
+            y2 = int(float(bbox.find("ymax").text))
+
+            diffc = obj.find("difficult")
+            difficult = 0 if diffc == None else int(diffc.text)
+
+            try:
+                cls = self._class_to_ind[obj.find("name").text.lower().strip()]
+                boxes[count, :] = [x1, y1, x2, y2]
+                gt_classes[count] = cls
+                overlaps[count, cls] = 1.0
+                seg_areas[count] = (x2 - x1 + 1) * (y2 - y1 + 1)
+                overlaps = scipy.sparse.csr_matrix(overlaps)
+                ishards[count] = difficult
+                count += 1
+
+            except:
+                continue
+
+        return {
+            "boxes": boxes,
+            "gt_classes": gt_classes,
+            "gt_ishard": ishards,
+            "gt_overlaps": overlaps,
+            "flipped": False,
+            "seg_areas": seg_areas,
+        }
+
+    def _save_pascal_crop(self, index):
         """
         Load image and bounding boxes info from XML file in the PASCAL VOC
         format.
@@ -266,40 +351,17 @@ class pascalvoc07(imdb):
         for ix, obj in enumerate(objs):
             bbox = obj.find("bndbox")
             # Make pixel indexes 0-based
-            # x1 = float(bbox.find("xmin").text) - 1
-            # y1 = float(bbox.find("ymin").text) - 1
-            # x2 = float(bbox.find("xmax").text) - 1
-            # y2 = float(bbox.find("ymax").text) - 1
-            x1 = int(float(bbox.find("xmin").text))
-            y1 = int(float(bbox.find("ymin").text))
-            x2 = int(float(bbox.find("xmax").text))
-            y2 = int(float(bbox.find("ymax").text))
+            x1 = float(bbox.find("xmin").text) - 1
+            y1 = float(bbox.find("ymin").text) - 1
+            x2 = float(bbox.find("xmax").text) - 1
+            y2 = float(bbox.find("ymax").text) - 1
 
             diffc = obj.find("difficult")
             difficult = 0 if diffc == None else int(diffc.text)
             ishards[ix] = difficult
 
-            cls = self._class_to_ind[obj.find("name").text.lower().strip()]
+            cls = obj.find("name").text.lower().strip()
             boxes[ix, :] = [x1, y1, x2, y2]
-            # if boxes[ix, 0] > 2048 or boxes[ix, 1] > 1024:
-            #     print(boxes[ix, :])
-            #     print(filename)
-            #     p = input()
-
-            gt_classes[ix] = cls
-            overlaps[ix, cls] = 1.0
-            seg_areas[ix] = (x2 - x1 + 1) * (y2 - y1 + 1)
-
-        overlaps = scipy.sparse.csr_matrix(overlaps)
-
-        return {
-            "boxes": boxes,
-            "gt_classes": gt_classes,
-            "gt_ishard": ishards,
-            "gt_overlaps": overlaps,
-            "flipped": False,
-            "seg_areas": seg_areas,
-        }
 
     def _get_comp_id(self):
         comp_id = (

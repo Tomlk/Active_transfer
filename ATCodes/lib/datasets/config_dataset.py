@@ -32,7 +32,7 @@ __D.WATERCOLOR = "./data/datasets/watercolor"
 __D.SIM10K = "./data/datasets/sim10k"
 __D.CITYSCAPE10K = "./data/datasets/cityscape10k"
 
-__D.CITYSCAPE10K = "./data/datasets/pascalvoc07"
+__D.PASCALVOC07 = "./data/datasets/pascalvoc07"
 
 
 def _merge_a_into_b(a, b):
