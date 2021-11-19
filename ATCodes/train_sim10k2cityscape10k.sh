@@ -23,12 +23,12 @@ max_transfer_num=99
 #python da_tr
 # st_ratio=1 #not enhanceain_net2.py --max_epochs 14 --cuda --dataset ${dataset} --net ${net} --save_dir ${save_dir} --pretrained_path ${pretrained_path} --checkpoint_interval ${checkpoint_interval} --gc --lc --da_use_contex --r true --round_num ${round_num} --gpu_id ${GPUID} --st_ratio ${st_ratio}
 
-'''
-0 random
-1 lc
-2 dc-t
-3 dc-t +lc
-'''
+
+#0 random
+#1 lc
+#2 dc-t
+#3 dc-t +lc
+
 select_strategy =0
 #at 0
 python da_train_net.py --cuda --dataset ${dataset} --net ${net} --save_dir ${save_dir} --pretrained_path ${pretrained_path} --gc --lc --lr ${lr} --da_use_contex --round_num ${round_num} --gpu_id ${GPUID} --st_ratio ${st_ratio} --select_strategy ${select_strategy} --max_transfer_num ${max_transfer_num}
