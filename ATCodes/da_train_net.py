@@ -258,6 +258,7 @@ def parse_args():
         help="max_transfer_num",
         type=int
     )
+    parser.add_argument("--resume_round",dest="resume_round",help="resume_round",type=int,default=0)
     args = parser.parse_args()
     return args
 
@@ -548,7 +549,7 @@ if __name__ == "__main__":
     每一轮
     '''
     # 循环开始
-    for i in range(args.round_num):  # 每次加5%的目标域数据
+    for i in range(args.resume_round,args.round_num):  # 每次加5%的目标域数据
 
         cfg.TRAIN.USE_FLIPPED = False
         cfg.USE_GPU_NMS = args.cuda
