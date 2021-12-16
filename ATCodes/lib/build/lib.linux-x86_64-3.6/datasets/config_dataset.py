@@ -12,25 +12,17 @@ cfg_d = __D
 #
 # Training options
 # with regard to pascal, the directories under the path will be ./VOC2007, ./VOC2012"
-# __D.PASCAL = "/data/datasets/DA_Detection/VOCdevkit"
-__D.CITYSCAPE="./data/datasets/cityscape"
-__D.CITYSCAPEFOGGY="./data/datasets/cityscapefoggy"
-
-__D.PASCAL = "./data/datasets/PASCALVOC/VOCdevkit"
+__D.PASCAL = "/data/datasets/DA_Detection/VOCdevkit"
 __D.PASCALCLIP = ""
-__D.PASCALWATER = "./data/datasets/PASCALVOC/VOCdevkit"
+__D.PASCALWATER = "/data/datasets/DA_Detection/VOCdevkit"
 __D.PASCALRPCFAKE = "/data/GeneralDataset/DomainAdaptation/rpc/voc_format_fake4-2"
 __D.PASCALRPC = "/data/GeneralDataset/DomainAdaptation/rpc/voc_format_rpc-2"
 
 # For these datasets, the directories under the path will be Annotations  ImageSets  JPEGImages."
-# __D.CLIPART = "/data/datasets/DA_Detection/clipart"
-__D.CLIPART = "./data/datasets/clipart"
-__D.BDDDAYTIME8="./data/datasets/bdddaytime8"
-__D.BDDDAYTIME10="./data/datasets/bdddaytime10"
-__D.BDDNIGHT10="./data/datasets/bddnight10"
-__D.WATERCOLOR = "./data/datasets/watercolor"
-__D.SIM10K = "./data/datasets/sim10k"
-__D.CITYSCAPE10K = "./data/datasets/cityscape10k"
+__D.CLIPART = "/data/datasets/DA_Detection/clipart"
+__D.WATER = "/data/datasets/DA_Detection/watercolor"
+__D.CITYSCAPES = "/data/datasets/cityscapes"
+__D.CITYSCAPESFOGGY = "/data/datasets/cityscapesfoggy"
 
 
 def _merge_a_into_b(a, b):

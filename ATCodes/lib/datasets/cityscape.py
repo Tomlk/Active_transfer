@@ -16,7 +16,6 @@ import scipy.sparse
 from model.utils.config import cfg
 
 from . import ds_utils
-from .config_dataset import cfg_d
 from .imdb import ROOT_DIR, imdb
 from .voc_eval import voc_eval
 
@@ -37,17 +36,15 @@ except NameError:
 
 
 class cityscape(imdb):
-    def __init__(self, image_set, year,devkit_path=None):
-        imdb.__init__(self, "cityscape _" + image_set)
+    def __init__(self, image_set, year, devkit_path=None):
+        imdb.__init__(self, "cityscape_" + year + "_" + image_set)
         self._year = year
         self._image_set = image_set
 
         self._devkit_path = (
-            # self._get_default_path() if devkit_path is None else devkit_path
-            cfg_d.CITYSCAPE
+            self._get_default_path() if devkit_path is None else devkit_path
         )
-        #self._data_path = os.path.join(self._devkit_path, "VOC" + self._year)
-        self._data_path = os.path.join(self._devkit_path)
+        self._data_path = os.path.join(self._devkit_path, "VOC" + self._year)
 
         self._classes = (
             "__background__",  # always index 0
@@ -59,9 +56,6 @@ class cityscape(imdb):
             "train",
             "motorcycle",
             "bicycle",
-            #临时添加 用于测试
-            # "traffic_sign",
-            # "traffic_light",
         )
 
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
@@ -129,19 +123,16 @@ class cityscape(imdb):
             image_set_file
         )
 
-        # image_index = []
-        # print("*" * 50)
-        # print("image_set_file:", image_set_file)
-        # print("*" * 50)
-
-
-        # with open(image_set_file) as f:
-        #     for x in f.readlines():
-        #         if len(x) > 1:
-        #             image_index.append(x.strip())
-
+        image_index = []
+        print("*" * 50)
+        print("image_set_file:", image_set_file)
+        print("*" * 50)
         with open(image_set_file) as f:
-            image_index = [x.strip() for x in f.readlines()]
+            for x in f.readlines():
+                if len(x) > 1:
+                    image_index.append(x.strip())
+            # image_index = [x.strip() for x in f.readlines()]
+
         return image_index
 
     def _get_default_path(self):
@@ -157,21 +148,18 @@ class cityscape(imdb):
         This function loads/saves from/to a cache file to speed up future calls.
         """
 
-        #不存cache
-        # print("self.cache_path:",self.cache_path)
-        # cache_file = os.path.join(self.cache_path, self.name + "_gt_roidb.pkl")
-        # print("cache_file:",cache_file)
-        # if os.path.exists(cache_file):
-        #     with open(cache_file, "rb") as fid:
-        #         roidb = pickle.load(fid)
-        #     print("{} gt roidb loaded from {}".format(self.name, cache_file))
-        #     return roidb
+        cache_file = os.path.join(self.cache_path, self.name + "_gt_roidb.pkl")
+        if os.path.exists(cache_file):
+            with open(cache_file, "rb") as fid:
+                roidb = pickle.load(fid)
+            print("{} gt roidb loaded from {}".format(self.name, cache_file))
+            return roidb
 
         gt_roidb = [self._load_pascal_annotation(index) for index in self.image_index]
 
-        # with open(cache_file, "wb") as fid:
-        #     pickle.dump(gt_roidb, fid, pickle.HIGHEST_PROTOCOL)
-        # print("wrote gt roidb to {}".format(cache_file))
+        with open(cache_file, "wb") as fid:
+            pickle.dump(gt_roidb, fid, pickle.HIGHEST_PROTOCOL)
+        print("wrote gt roidb to {}".format(cache_file))
 
         return gt_roidb
 
@@ -271,14 +259,10 @@ class cityscape(imdb):
         for ix, obj in enumerate(objs):
             bbox = obj.find("bndbox")
             # Make pixel indexes 0-based
-            # x1 = float(bbox.find("xmin").text) - 1
-            # y1 = float(bbox.find("ymin").text) - 1
-            # x2 = float(bbox.find("xmax").text) - 1
-            # y2 = float(bbox.find("ymax").text) - 1
-            x1 = int(float(bbox.find("xmin").text)) 
-            y1 = int(float(bbox.find("ymin").text))
-            x2 = int(float(bbox.find("xmax").text)) 
-            y2 = int(float(bbox.find("ymax").text)) 
+            x1 = float(bbox.find("xmin").text) - 1
+            y1 = float(bbox.find("ymin").text) - 1
+            x2 = float(bbox.find("xmax").text) - 1
+            y2 = float(bbox.find("ymax").text) - 1
 
             diffc = obj.find("difficult")
             difficult = 0 if diffc == None else int(diffc.text)
@@ -286,10 +270,10 @@ class cityscape(imdb):
 
             cls = self._class_to_ind[obj.find("name").text.lower().strip()]
             boxes[ix, :] = [x1, y1, x2, y2]
-            # if boxes[ix, 0] > 2048 or boxes[ix, 1] > 1024:
-            #     print(boxes[ix, :])
-            #     print(filename)
-            #     p = input()
+            if boxes[ix, 0] > 2048 or boxes[ix, 1] > 1024:
+                print(boxes[ix, :])
+                print(filename)
+                p = input()
 
             gt_classes[ix] = cls
             overlaps[ix, cls] = 1.0
@@ -349,10 +333,11 @@ class cityscape(imdb):
 
     def _do_python_eval(self, output_dir="output"):
         annopath = os.path.join(
-            self._devkit_path, "Annotations", "{:s}.xml"
+            self._devkit_path, "VOC" + self._year, "Annotations", "{:s}.xml"
         )
         imagesetfile = os.path.join(
             self._devkit_path,
+            "VOC" + self._year,
             "ImageSets",
             "Main",
             self._image_set + ".txt",
@@ -382,6 +367,10 @@ class cityscape(imdb):
             with open(os.path.join(output_dir, cls + "_pr.pkl"), "wb") as f:
                 pickle.dump({"rec": rec, "prec": prec, "ap": ap}, f)
         print("Mean AP = {:.4f}".format(np.mean(aps)))
+        print("~~~~~~~~")
+        print("Results:")
+        for ap in aps:
+            print("{:.3f}".format(ap))
         print("{:.3f}".format(np.mean(aps)))
         print("~~~~~~~~")
         print("")

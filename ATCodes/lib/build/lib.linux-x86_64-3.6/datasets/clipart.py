@@ -26,8 +26,7 @@ from .voc_eval import voc_eval
 # Licensed under The MIT License [see LICENSE for details]
 # Written by Ross Girshick
 # --------------------------------------------------------
-import enhancedata_tools.enhancedata as EH
-import renewImageSetstool.renew_txt as RNtool
+
 
 try:
     xrange  # Python 2
@@ -41,8 +40,6 @@ class clipart(imdb):
         imdb.__init__(self, "clipart_" + image_set)
         self._year = year
         self._image_set = image_set
-        # self.detection_result=[]
-
         self._devkit_path = (
             cfg_d.CLIPART
         )  # self._get_default_path() if devkit_path is None \
@@ -51,9 +48,6 @@ class clipart(imdb):
         self._data_path = (
             self._devkit_path
         )  # os.path.join(self._devkit_path, 'clipart')
-
-        self._source_data_path=os.path.join(cfg_d.PASCAL,"VOC2007")
-
         self._classes = (
             "__background__",  # always index 0
             "aeroplane",
@@ -106,9 +100,6 @@ class clipart(imdb):
             self._data_path
         )
 
-    def get_dataset_path(self):
-        return self._devkit_path
-        
     def image_path_at(self, i):
         """
         Return the absolute path to image i in the image sequence.
@@ -158,17 +149,17 @@ class clipart(imdb):
         Return the database of ground-truth regions of interest.
         This function loads/saves from/to a cache file to speed up future calls.
         """
-        # cache_file = os.path.join(self.cache_path, self.name + "_gt_roidb.pkl")
-        # if os.path.exists(cache_file):
-        #     with open(cache_file, "rb") as fid:
-        #         roidb = pickle.load(fid)  # ,encoding='latin1')
-        #     print("{} gt roidb loaded from {}".format(self.name, cache_file))
-        #     return roidb
+        cache_file = os.path.join(self.cache_path, self.name + "_gt_roidb.pkl")
+        if os.path.exists(cache_file):
+            with open(cache_file, "rb") as fid:
+                roidb = pickle.load(fid)  # ,encoding='latin1')
+            print("{} gt roidb loaded from {}".format(self.name, cache_file))
+            return roidb
 
         gt_roidb = [self._load_pascal_annotation(index) for index in self.image_index]
-        # with open(cache_file, "wb") as fid:
-        #     pickle.dump(gt_roidb, fid, pickle.HIGHEST_PROTOCOL)
-        # print("wrote gt roidb to {}".format(cache_file))
+        with open(cache_file, "wb") as fid:
+            pickle.dump(gt_roidb, fid, pickle.HIGHEST_PROTOCOL)
+        print("wrote gt roidb to {}".format(cache_file))
 
         return gt_roidb
 
@@ -267,14 +258,10 @@ class clipart(imdb):
         for ix, obj in enumerate(objs):
             bbox = obj.find("bndbox")
             # Make pixel indexes 0-based
-            # x1 = float(bbox.find("xmin").text) - 1
-            # y1 = float(bbox.find("ymin").text) - 1
-            # x2 = float(bbox.find("xmax").text) - 1
-            # y2 = float(bbox.find("ymax").text) - 1
-            x1 = int(float(bbox.find("xmin").text)) 
-            y1 = int(float(bbox.find("ymin").text))
-            x2 = int(float(bbox.find("xmax").text)) 
-            y2 = int(float(bbox.find("ymax").text)) 
+            x1 = float(bbox.find("xmin").text) - 1
+            y1 = float(bbox.find("ymin").text) - 1
+            x2 = float(bbox.find("xmax").text) - 1
+            y2 = float(bbox.find("ymax").text) - 1
 
             diffc = obj.find("difficult")
             difficult = 0 if diffc == None else int(diffc.text)
@@ -325,14 +312,10 @@ class clipart(imdb):
         for ix, obj in enumerate(objs):
             bbox = obj.find("bndbox")
             # Make pixel indexes 0-based
-            # x1 = float(bbox.find("xmin").text) - 1
-            # y1 = float(bbox.find("ymin").text) - 1
-            # x2 = float(bbox.find("xmax").text) - 1
-            # y2 = float(bbox.find("ymax").text) - 1
-            x1 = int(float(bbox.find("xmin").text)) 
-            y1 = int(float(bbox.find("ymin").text))
-            x2 = int(float(bbox.find("xmax").text)) 
-            y2 = int(float(bbox.find("ymax").text)) 
+            x1 = float(bbox.find("xmin").text) - 1
+            y1 = float(bbox.find("ymin").text) - 1
+            x2 = float(bbox.find("xmax").text) - 1
+            y2 = float(bbox.find("ymax").text) - 1
 
             diffc = obj.find("difficult")
             difficult = 0 if diffc == None else int(diffc.text)
@@ -358,39 +341,6 @@ class clipart(imdb):
         path = os.path.join(filedir, filename)
         return path
 
-    def get_detection_result(self,all_boxes):
-        detection_result=[]
-        d={}
-        for _,index in enumerate(self.image_index):
-            d[index]=[]
-        for cls_ind, cls in enumerate(self.classes):
-            if cls == "__background__":
-                continue
-            for im_ind, index in enumerate(self.image_index):
-                dets=all_boxes[cls_ind][im_ind]
-                if dets==[]:
-                    # d[index]
-                    continue
-                for k in xrange(dets.shape[0]):
-                    d[index].append([cls,dets[k,-1],dets[k,0],dets[k,1],dets[k,2],dets[k,3]])
-
-        for imagekey in d.keys():
-            nd={}
-            nd['img']=os.path.join(self._devkit_path,"JPEGImages",imagekey+".jpg")
-            nd['detections']=[]
-            for obj in d[imagekey]:
-                if float(obj[1])<0.5:  #置信度小于0.5的不统计
-                    continue
-                else:
-                    objd={}
-                    objd['name']=obj[0]
-                    objd['score']=float(obj[1])
-                    objd['box_points']=[int(float(obj[2])),int(float(obj[3])),int(float(obj[4])),int(float(obj[5]))]
-                    nd['detections'].append(objd)
-            detection_result.append(nd)
-        return detection_result
-
-
     def _write_voc_results_file(self, all_boxes):
         for cls_ind, cls in enumerate(self.classes):
             if cls == "__background__":
@@ -404,48 +354,29 @@ class clipart(imdb):
                         continue
                     # the VOCdevkit expects 1-based indices
                     for k in xrange(dets.shape[0]):
-                        # f.write(
-                        #     "{:s} {:.3f} {:.1f} {:.1f} {:.1f} {:.1f}\n".format(
-                        #         index,
-                        #         dets[k, -1],
-                        #         dets[k, 0] + 1,
-                        #         dets[k, 1] + 1,
-                        #         dets[k, 2] + 1,
-                        #         dets[k, 3] + 1,
-                        #     )
-                        # )
                         f.write(
                             "{:s} {:.3f} {:.1f} {:.1f} {:.1f} {:.1f}\n".format(
                                 index,
                                 dets[k, -1],
-                                dets[k, 0] ,
-                                dets[k, 1] ,
-                                dets[k, 2] ,
-                                dets[k, 3] ,
+                                dets[k, 0] + 1,
+                                dets[k, 1] + 1,
+                                dets[k, 2] + 1,
+                                dets[k, 3] + 1,
                             )
                         )
 
-    def _do_python_eval(self,epoch_index):
-        # annopath = os.path.join(
-        #     self._devkit_path, "VOC" + self._year, "Annotations", "{:s}.xml"
-        # )
-        annopath = os.path.join(
-            self._devkit_path,  "Annotations", "{:s}.xml"
-        )
+    def _do_python_eval(self, output_dir="output"):
+        annopath = os.path.join(self._devkit_path, "Annotations", "{:s}.xml")
         imagesetfile = os.path.join(
-            self._devkit_path,
-            "ImageSets",
-            "Main",
-            self._image_set + ".txt",
-            )
+            self._devkit_path, "ImageSets", "Main", self._image_set + ".txt"
+        )
         cachedir = os.path.join(self._devkit_path, "annotations_cache")
         aps = []
         # The PASCAL VOC metric changed in 2010
         use_07_metric = True if int(self._year) < 2010 else False
         print("VOC07 metric? " + ("Yes" if use_07_metric else "No"))
-        # if not os.path.isdir(output_dir):
-        #     os.mkdir(output_dir)
-        classaps=[]
+        if not os.path.isdir(output_dir):
+            os.mkdir(output_dir)
         for i, cls in enumerate(self._classes):
             if cls == "__background__":
                 continue
@@ -460,21 +391,18 @@ class clipart(imdb):
                 use_07_metric=use_07_metric,
             )
             aps += [ap]
-            classaps.append([cls,ap])
             print("AP for {} = {:.4f}".format(cls, ap))
-            # with open(os.path.join(output_dir, cls + "_pr.pkl"), "wb") as f:
-            #     pickle.dump({"rec": rec, "prec": prec, "ap": ap}, f)
+            with open(os.path.join(output_dir, "eval_result.txt"), "a") as result_f:
+                result_f.write("AP for {} = {:.4f}".format(cls, ap) + "\n")
+            with open(os.path.join(output_dir, cls + "_pr.pkl"), "wb") as f:
+                pickle.dump({"rec": rec, "prec": prec, "ap": ap}, f)
         print("Mean AP = {:.4f}".format(np.mean(aps)))
-        classaps.append(["mAP",np.mean(aps)])
-        #writetoresult
-        with open(os.path.join(self._devkit_path,"eval_result.txt"),"a") as f:
-            f.write("epoch {}:\n".format(epoch_index))
-            for i in range(len(classaps)):
-                item=str(classaps[i][0])+" "+str(classaps[i][1])+"\n"
-                f.write(item)
-
-            f.write("\n")
-
+        with open(os.path.join(output_dir, "eval_result.txt"), "a") as result_f:
+            result_f.write("Mean AP = {:.4f}".format(np.mean(aps)) + "\n")
+        print("~~~~~~~~")
+        print("Results:")
+        for ap in aps:
+            print("{:.3f}".format(ap))
         print("{:.3f}".format(np.mean(aps)))
         print("~~~~~~~~")
         print("")
@@ -499,57 +427,17 @@ class clipart(imdb):
         print("Running:\n{}".format(cmd))
         status = subprocess.call(cmd, shell=True)
 
-    def evaluate_detections(self, all_boxes,epoch_index):
+    def evaluate_detections(self, all_boxes, output_dir):
         self._write_voc_results_file(all_boxes)
-        self._do_python_eval(epoch_index)    # 计算 map
-
-    def get_lc_sorted_list(self,all_boxes):
-        return self.get_detection_result(all_boxes)
-
-
-    def add_datas_from_target(self,l,ratio,model_epoch,st_ratio):
-        #挑选的数目 :0.05 *图片数目
-        select_num=int(ratio*len(self.image_index))
-
-        temp_dic=super().get_add_character_dic(st_ratio)
-        num=0
-        for item in l:
-            img=item
-            xml=item.split('.')[0]+".xml"
-            #判断是否已经添加
-            if os.path.exists(os.path.join(self._source_data_path, "Annotations",xml)):
-                continue
-
-            for i in range(st_ratio):
-                img_path=os.path.join(self._devkit_path,"JPEGImages",img)
-                xml_path=os.path.join(self._devkit_path,"Annotations",xml)
-                source_path=os.path.join(self._source_data_path)
-                EH.data_enhance(img=img_path, xml=xml_path, type=i%5, addcharacter=temp_dic[i], save_path=source_path)
-            num+=1
-
-            if num>=select_num:
-                break
-        print("transfer finished!,transfered {} target data".format(num*st_ratio))
-
-        #写入记录
-        with open(os.path.join(self._devkit_path,"transfer_data_record.txt"),'a') as f:
-            f.write("epoch {} finished ,then  transfered {} imgs and xmls \n".format(model_epoch,num*st_ratio))
-        #更新源域txt
-        RNtool.gettxt(self._source_data_path,1)
-
-    def remove_datas_from_source(self,l):
-        for i in range(0,0.1*len(l)):  #默认剔除当前10%
-            img=l[i]
-            xml=l[i].split('.')[0]+".xml"
-            xml_path=os.path.join(self._source_data_path, "Annotations",xml)
-            img_path=os.path.join(self._source_data_path, "JPEGImages",img)
-            if os.path.exists(img_path):
-                os.remove(img_path)
-            if os.path.exists(xml_path):
-                os.remove(xml_path)
-        #更新源域txt
-        RNtool.gettxt(self._source_data_path,1)
-
+        self._do_python_eval(output_dir)
+        if self.config["matlab_eval"]:
+            self._do_matlab_eval(output_dir)
+        if self.config["cleanup"]:
+            for cls in self._classes:
+                if cls == "__background__":
+                    continue
+                filename = self._get_voc_results_file_template().format(cls)
+                os.remove(filename)
 
     def competition_mode(self, on):
         if on:
@@ -559,3 +447,10 @@ class clipart(imdb):
             self.config["use_salt"] = True
             self.config["cleanup"] = True
 
+
+if __name__ == "__main__":
+    d = pascal_voc("trainval", "2007")
+    res = d.roidb
+    from IPython import embed
+
+    embed()

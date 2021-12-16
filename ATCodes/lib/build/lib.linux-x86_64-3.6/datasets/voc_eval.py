@@ -19,10 +19,8 @@ def parse_rec(filename):
     for obj in tree.findall("object"):
         obj_struct = {}
         obj_struct["name"] = obj.find("name").text
-        # obj_struct["pose"] = obj.find("pose").text
-        # obj_struct["truncated"] = int(obj.find("truncated").text)
-        obj_struct["pose"] = "Frontal"
-        obj_struct["truncated"] = "0"
+        obj_struct["pose"] = obj.find("pose").text
+        obj_struct["truncated"] = int(obj.find("truncated").text)
         obj_struct["difficult"] = int(obj.find("difficult").text)
         bbox = obj.find("bndbox")
         obj_struct["bbox"] = [
@@ -107,47 +105,30 @@ def voc_eval(
     # first load gt
     if not os.path.isdir(cachedir):
         os.mkdir(cachedir)
-    #cachefile = os.path.join(cachedir, "%s_annots.pkl" % imagesetfile)
-    cachefile = "{}_annots.pkl".format(imagesetfile)
+    cachefile = os.path.join(cachedir, "%s_annots.pkl" % imagesetfile)
     # read list of images
     with open(imagesetfile, "r") as f:
         lines = f.readlines()
     imagenames = [x.strip() for x in lines]
 
-    # if not os.path.isfile(cachefile):
-    #     # load annotations
-    #     recs = {}
-    #     for i, imagename in enumerate(imagenames):
-    #         recs[imagename] = parse_rec(annopath.format(imagename))
-    #         if i % 100 == 0:
-    #             print("Reading annotation for {:d}/{:d}".format(i + 1, len(imagenames)))
-    #     # save
-    #     print("Saving cached annotations to {:s}".format(cachefile))
-    #     with open(cachefile, "wb") as f:
-    #         pickle.dump(recs, f)
-
-    # else:
-    #     # load
-    #     with open(cachefile, "rb") as f:
-    #         try:
-    #             recs = pickle.load(f)
-    #         except:
-    #             recs = pickle.load(f, encoding="bytes")
-
-
-    #无论如何都不读缓存文件
+    if not os.path.isfile(cachefile):
         # load annotations
-    recs = {}
-    for i, imagename in enumerate(imagenames):
-        recs[imagename] = parse_rec(annopath.format(imagename))
-        if i % 100 == 0:
-            print("Reading annotation for {:d}/{:d}".format(i + 1, len(imagenames)))
-    # save
-    # print("Saving cached annotations to {:s}".format(cachefile))
-    # with open(cachefile, "wb") as f:
-    #     pickle.dump(recs, f)
-
-
+        recs = {}
+        for i, imagename in enumerate(imagenames):
+            recs[imagename] = parse_rec(annopath.format(imagename))
+            if i % 100 == 0:
+                print("Reading annotation for {:d}/{:d}".format(i + 1, len(imagenames)))
+        # save
+        print("Saving cached annotations to {:s}".format(cachefile))
+        with open(cachefile, "wb") as f:
+            pickle.dump(recs, f)
+    else:
+        # load
+        with open(cachefile, "rb") as f:
+            try:
+                recs = pickle.load(f)
+            except:
+                recs = pickle.load(f, encoding="bytes")
 
     # extract gt objects for this class
     class_recs = {}
