@@ -106,6 +106,7 @@ class vgg16(_fasterRCNN):
         lc=False,
         gc=False,
         da_use_contex=False,
+        jigsaw_classes=30,
     ):
         self.model_path = pretrained_path
         self.dout_base_model = 512
@@ -114,6 +115,7 @@ class vgg16(_fasterRCNN):
         self.lc = lc
         self.gc = gc
         self.da_use_contex = da_use_contex
+        self.jigsaw_classes=jigsaw_classes
 
         _fasterRCNN.__init__(
             self, classes, class_agnostic, self.lc, self.gc, self.da_use_contex
@@ -154,6 +156,10 @@ class vgg16(_fasterRCNN):
         self.RCNN_top = vgg.classifier
 
         self.RCNN_cls_score = nn.Linear(feat_d, self.n_classes)
+        '''
+        加入jigsaw 分类器
+        '''
+        self.jigsaw_classifier=nn.Linear(feat_d,self.jigsaw_classes)
         if self.class_agnostic:
             self.RCNN_bbox_pred = nn.Linear(feat_d, 4)
         else:

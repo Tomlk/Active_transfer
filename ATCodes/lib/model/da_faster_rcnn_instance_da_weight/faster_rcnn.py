@@ -113,7 +113,7 @@ class _fasterRCNN(nn.Module):
         # if it is training phrase, then use ground trubut bboxes for refining
         if self.training:
             roi_data = self.RCNN_proposal_target(rois, gt_boxes, num_boxes)
-            rois, rois_label, rois_target, rois_inside_ws, rois_outside_ws = roi_data
+            rois, rois_label, rois_target, rois_inside_ws, rois_outside_ws = roi_data #加载的roi_label
 
             rois_label = Variable(rois_label.view(-1).long())
             rois_target = Variable(rois_target.view(-1, rois_target.size(2)))
@@ -156,10 +156,20 @@ class _fasterRCNN(nn.Module):
                     (feat.detach(), instance_pooled_feat), 1
                 )
             # compute bbox offset
+        '''
+        找到roi后，对roi区域进行3*3生成新的拼图图片，并得到对应label，对拼图图片进行 图像分类和 jigsaw分类。即这时候的图片不是原图片
+        '''
 
+        jig_label=None #TODO:如何获得new data,jiglable
         # compute object classification probability
-        cls_score = self.RCNN_cls_score(pooled_feat)
+        cls_score = self.RCNN_cls_score(pooled_feat)  #计算分类分数
         cls_prob = F.softmax(cls_score, 1)
+
+        '''
+        同样的：计算jigsaw分类结果
+        '''
+        cls_jigsaw_score=self.jigsaw_classifier(pooled_feat)
+        cls_jigsaw_prob=F.softmax(cls_jigsaw_score,1)
 
         # add instance da
         instance_sigmoid, same_size_label = self.RCNN_instanceDA(
@@ -212,6 +222,7 @@ class _fasterRCNN(nn.Module):
         if self.training:
             # classification loss
             RCNN_loss_cls = F.cross_entropy(cls_score, rois_label)
+            jigsaw_loss_cls=F.cross_entropy(cls_jigsaw_score,jig_label)
 
             # bounding box regression L1 loss
             RCNN_loss_bbox = _smooth_l1_loss(
@@ -224,11 +235,13 @@ class _fasterRCNN(nn.Module):
         return (
             rois,
             cls_prob,
+            cls_jigsaw_prob,
             bbox_pred,
             category_loss_cls,
             rpn_loss_cls,
             rpn_loss_bbox,
             RCNN_loss_cls,
+            jigsaw_loss_cls,
             RCNN_loss_bbox,
             rois_label,
             d_pixel,
