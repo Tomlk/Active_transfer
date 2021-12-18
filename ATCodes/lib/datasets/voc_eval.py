@@ -105,7 +105,7 @@ def voc_eval(
     # first load gt
     if not os.path.isdir(cachedir):
         os.mkdir(cachedir)
-    cachefile = os.path.join(cachedir, "%s_annots.pkl" % imagesetfile)
+    cachefile = "{}_annotas.pkl".format(imagesetfile)
     # read list of images
     with open(imagesetfile, "r") as f:
         lines = f.readlines()
